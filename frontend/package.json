@@ -20,7 +20,10 @@
     "xlsx": "^0.18.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "tailwind-merge": "^2.2.0"
+    "tailwind-merge": "^2.2.0",
+    "i18next": "^23.7.6",
+    "react-i18next": "^13.5.0",
+    "js-cookie": "^3.0.5"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.1",

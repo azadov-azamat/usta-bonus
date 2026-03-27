@@ -2,7 +2,10 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+import { useAuth } from '@/lib/context/AuthContext'
 import {
   Users,
   Package,
@@ -12,15 +15,23 @@ import {
   LogOut,
 } from 'lucide-react'
 
-const navItems = [
-  { label: 'Foydalanuvchilar', href: '/admin/users', icon: Users },
-  { label: 'Mahsulotlar', href: '/admin/products', icon: Package },
-  { label: 'Arizalar', href: '/admin/withdrawal-requests', icon: FileText },
-]
-
 export function Sidebar() {
+  const router = useRouter()
   const pathname = usePathname()
+  const { t } = useTranslation()
+  const { logout } = useAuth()
   const [isOpen, setIsOpen] = React.useState(false)
+
+  const navItems = [
+    { label: t('dashboard.users'), href: '/users', icon: Users },
+    { label: t('dashboard.products'), href: '/products', icon: Package },
+    { label: t('withdrawals.title'), href: '/withdrawal-requests', icon: FileText },
+  ]
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   return (
     <>
@@ -70,9 +81,12 @@ export function Sidebar() {
           </nav>
 
           {/* Footer */}
-          <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-background/80 hover:bg-background/10 transition-colors w-full text-left">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-background/80 hover:bg-background/10 transition-colors w-full text-left"
+          >
             <LogOut size={20} />
-            <span className="font-medium">Chiqish</span>
+            <span className="font-medium">{t('common.logout')}</span>
           </button>
         </div>
       </aside>

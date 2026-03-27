@@ -6,7 +6,7 @@ import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
 import { Badge } from '@/components/Badge'
 
-export default function UsersPage() {
+function UsersContent() {
   const { data: users = [], isLoading, error } = useUsers()
 
   const statusVariant = (status: string): 'default' | 'success' | 'warning' | 'danger' => {
@@ -57,11 +57,9 @@ export default function UsersPage() {
   }
 
   return (
-    <AdminLayout
-      title="Foydalanuvchilar"
-      description="Foydalanuvchilar ro'yhatini boshqaring"
-    >
+    <AdminLayout>
       <div className="space-y-6">
+      
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted">Jami foydalanuvchilar: {users.length}</p>
@@ -88,5 +86,13 @@ export default function UsersPage() {
         />
       </div>
     </AdminLayout>
+  )
+}
+
+export default function UsersPage() {
+  return (
+    <ProtectedRoute>
+      <UsersContent />
+    </ProtectedRoute>
   )
 }

@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Copy } from 'lucide-react'
 import { useProduct } from '@/lib/hooks/useProducts'
 import { usePromoCodesByProduct } from '@/lib/hooks/usePromoCodes'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import { Card } from '@/components/Card'
 import { DataTable } from '@/components/DataTable'
 import { Badge } from '@/components/Badge'
 import { Button } from '@/components/Button'
 
-export default function ProductDetailsPage({
+function ProductDetailsContent({
   params,
 }: {
   params: { id: string }
@@ -168,5 +169,17 @@ export default function ProductDetailsPage({
         </Card>
       </div>
     </AdminLayout>
+  )
+}
+
+export default function ProductDetailsPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  return (
+    <ProtectedRoute>
+      <ProductDetailsContent params={params} />
+    </ProtectedRoute>
   )
 }

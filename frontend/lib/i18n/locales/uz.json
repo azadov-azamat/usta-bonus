@@ -1,0 +1,91 @@
+{
+  "common": {
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrir qilish",
+    "add": "Qo'shish",
+    "search": "Qidirish",
+    "loading": "Yuklanmoqda...",
+    "error": "Xatolik",
+    "success": "Muvaffaqiyatli",
+    "warning": "Ogohlantirish",
+    "logout": "Chiqish"
+  },
+  "auth": {
+    "login": "Tizimga kirish",
+    "username": "Foydalanuvchi nomi",
+    "password": "Parol",
+    "loginButton": "Kirish",
+    "loginError": "Noto'g'ri foydalanuvchi nomi yoki parol",
+    "invalidToken": "Token eskirgan. Iltimos qayta kiring.",
+    "sessionExpired": "Sessiya tugagan. Iltimos qayta kiring.",
+    "unauthorized": "Ruxsat yo'q"
+  },
+  "dashboard": {
+    "welcome": "Xush kelibsiz",
+    "overview": "Umumiy ko'rinish",
+    "users": "Foydalanuvchilar",
+    "products": "Mahsulotlar",
+    "withdrawals": "Arizalar",
+    "language": "Til",
+    "profile": "Profil"
+  },
+  "users": {
+    "title": "Foydalanuvchilar",
+    "name": "Ism",
+    "username": "Foydalanuvchi nomi",
+    "phone": "Telefon",
+    "balance": "Balans (so'm)",
+    "earned": "Jami Oldi (so'm)",
+    "withdrawn": "Jami Chiqarildi (so'm)",
+    "createdAt": "Ro'yxatdan o'tgan",
+    "noUsers": "Foydalanuvchilar topilmadi"
+  },
+  "products": {
+    "title": "Mahsulotlar",
+    "name": "Nomi",
+    "quantity": "Soni",
+    "bonusAmount": "Bonus Summa (so'm)",
+    "generatedCodes": "Yaratilgan Kodlar",
+    "activatedCodes": "Faol Kodlar",
+    "availableCodes": "Mavjud Kodlar",
+    "importExcel": "Excel dan import qilish",
+    "downloadTemplate": "Shablon yuklab olish",
+    "uploadFile": "Faylni tanlang yoki sudring",
+    "invalidFile": "Noto'g'ri fayl formati",
+    "importSuccess": "Mahsulotlar muvaffaqiyatli import qilindi",
+    "importError": "Import qilishda xatolik yuz berdi",
+    "promoCodesTitle": "Promokodlar",
+    "code": "Kod",
+    "status": "Holati",
+    "activatedBy": "Tomonidan faollashtirdi",
+    "activatedAt": "Faollantirilgan",
+    "noPromoCodes": "Promokodlar topilmadi"
+  },
+  "withdrawals": {
+    "title": "Arizalar",
+    "amount": "Summa (so'm)",
+    "status": "Holati",
+    "pending": "Kutilayotgan",
+    "completed": "Tasdiqlangan",
+    "rejected": "Rad etilgan",
+    "requestedAt": "Ariza berilgan",
+    "completedAt": "Tasdiqlangan",
+    "userId": "Foydalanuvchi ID",
+    "image": "Rasm",
+    "uploadImage": "Rasm yuklash",
+    "uploadReceipt": "Rasm faylini tanlang yoki sudring",
+    "uploadSuccess": "Rasm muvaffaqiyatli yuklandi",
+    "uploadError": "Rasm yuklashda xatolik yuz berdi",
+    "noImage": "Rasm mavjud emas",
+    "noWithdrawals": "Arizalar topilmadi"
+  },
+  "errors": {
+    "networkError": "Tarmoq xatosi. Iltimos qayta urinib ko'ring.",
+    "serverError": "Server xatosi. Iltimos keyinroq urinib ko'ring.",
+    "notFound": "Topilmadi",
+    "forbidden": "Ruxsat yo'q",
+    "validation": "Tekshirish xatosi"
+  }
+}

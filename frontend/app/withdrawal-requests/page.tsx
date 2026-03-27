@@ -2,13 +2,14 @@
 
 import React from 'react'
 import { useWithdrawalRequests, useUploadWithdrawalImage } from '@/lib/hooks/useWithdrawal'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
 import { Badge } from '@/components/Badge'
 import { Card } from '@/components/Card'
 import { UploadZone } from '@/components/UploadZone'
 
-export default function WithdrawalRequestsPage() {
+function WithdrawalRequestsContent() {
   const { data: requests = [], isLoading, error } = useWithdrawalRequests()
   const [selectedRequest, setSelectedRequest] = React.useState<any>(null)
 
@@ -122,6 +123,14 @@ export default function WithdrawalRequestsPage() {
         )}
       </div>
     </AdminLayout>
+  )
+}
+
+export default function WithdrawalRequestsPage() {
+  return (
+    <ProtectedRoute>
+      <WithdrawalRequestsContent />
+    </ProtectedRoute>
   )
 }
 

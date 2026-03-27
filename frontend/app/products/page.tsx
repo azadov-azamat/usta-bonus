@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { Download, Plus } from 'lucide-react'
 import { useProducts, useImportProducts } from '@/lib/hooks/useProducts'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
 import { Card } from '@/components/Card'
@@ -11,7 +12,7 @@ import { Button } from '@/components/Button'
 import { UploadZone } from '@/components/UploadZone'
 import { importFromExcel, exportToExcel, createExcelTemplate } from '@/lib/utils/excel'
 
-export default function ProductsPage() {
+function ProductsContent() {
   const { data: products = [], isLoading, error } = useProducts()
   const importMutation = useImportProducts()
   const [showImport, setShowImport] = React.useState(false)
@@ -163,5 +164,13 @@ export default function ProductsPage() {
         />
       </div>
     </AdminLayout>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <ProtectedRoute>
+      <ProductsContent />
+    </ProtectedRoute>
   )
 }
