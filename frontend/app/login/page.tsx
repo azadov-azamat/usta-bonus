@@ -14,7 +14,7 @@ export default function LoginPage() {
   const { isAuthenticated, isLoading: sessionLoading } = useSession()
   const { login, isLoading, error } = useLogin()
 
-  const [username, setUsername] = useState('')
+  const [loginValue, setLoginValue] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
@@ -22,7 +22,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!sessionLoading && isAuthenticated) {
-      router.push('/')
+      router.replace('/')
     }
   }, [isAuthenticated, sessionLoading, router])
 
@@ -30,14 +30,14 @@ export default function LoginPage() {
     e.preventDefault()
     setLoginError(null)
 
-    if (!username.trim() || !password.trim()) {
+    if (!loginValue.trim() || !password.trim()) {
       setLoginError(t('auth.loginError'))
       return
     }
 
-    const success = await login(username, password)
+    const success = await login(loginValue, password)
     if (success) {
-      router.push('/')
+      router.replace('/')
     } else {
       setLoginError(error || t('auth.loginError'))
     }
@@ -83,8 +83,8 @@ export default function LoginPage() {
               </label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={loginValue}
+                onChange={(e) => setLoginValue(e.target.value)}
                 disabled={isLoading}
                 className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition disabled:opacity-50"
                 placeholder="admin"
@@ -123,7 +123,7 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              disabled={isLoading || !username.trim() || !password.trim()}
+              disabled={isLoading || !loginValue.trim() || !password.trim()}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? t('common.loading') : t('auth.loginButton')}

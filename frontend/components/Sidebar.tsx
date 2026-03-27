@@ -28,8 +28,8 @@ export function Sidebar() {
     { label: t('withdrawals.title'), href: '/withdrawal-requests', icon: FileText },
   ]
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     router.push('/login')
   }
 

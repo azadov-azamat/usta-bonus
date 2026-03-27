@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import Cookies from 'js-cookie'
 import { api } from '../api'
 
 export interface AuthUser {
   id: string
   fullName: string
-  username: string
-  phoneNumber?: string
+  login: string
+  role?: string
 }
 
 interface AuthContextType {
@@ -14,69 +13,95 @@ interface AuthContextType {
   token: string | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (username: string, password: string) => Promise<void>
-  logout: () => void
+  login: (login: string, password: string) => Promise<void>
+  logout: () => Promise<void>
   error: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const TOKEN_KEY = 'admin_token'
-const USER_KEY = 'admin_user'
+function mapAuthUser(payload: unknown): AuthUser | null {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const item = payload as Record<string, unknown>
+
+  if (typeof item.id !== 'string' || typeof item.login !== 'string') {
+    return null
+  }
+
+  return {
+    id: item.id,
+    login: item.login,
+    fullName: typeof item.fullName === 'string' ? item.fullName : 'Admin',
+    role: typeof item.role === 'string' ? item.role : undefined,
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize auth from cookies/storage
+  const fetchSession = async () => {
+    const response = await api.get('/api/admin/auth/session', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+      params: {
+        _t: Date.now(),
+      },
+    })
+
+    return mapAuthUser(response.data?.item)
+  }
+
   useEffect(() => {
-    const storedToken = Cookies.get(TOKEN_KEY)
-    const storedUser = localStorage.getItem(USER_KEY)
+    let isMounted = true
 
-    if (storedToken) {
-      setToken(storedToken)
-      api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
-    }
-
-    if (storedUser) {
+    async function restoreSession() {
       try {
-        setUser(JSON.parse(storedUser))
-      } catch (err) {
-        console.error('[v0] Failed to parse stored user:', err)
+        const sessionUser = await fetchSession()
+
+        if (isMounted) {
+          setUser(sessionUser)
+        }
+      } catch {
+        if (isMounted) {
+          setUser(null)
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     }
 
-    setIsLoading(false)
+    restoreSession()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  const login = async (username: string, password: string) => {
+  const login = async (login: string, password: string) => {
     try {
       setIsLoading(true)
       setError(null)
 
       const response = await api.post('/api/admin/auth/login', {
-        username,
+        login: login.trim().toLowerCase(),
         password,
       })
+      const admin = mapAuthUser(response.data?.item) || (await fetchSession())
 
-      const { token: newToken, admin } = response.data
+      if (!admin) {
+        throw new Error('Login response format is invalid.')
+      }
 
-      // Store token in secure cookie
-      Cookies.set(TOKEN_KEY, newToken, {
-        expires: 7,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-      })
-
-      // Store user in localStorage
-      localStorage.setItem(USER_KEY, JSON.stringify(admin))
-
-      // Set API default header
-      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
-
-      setToken(newToken)
       setUser(admin)
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Login failed. Please try again.'
@@ -87,20 +112,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
-    Cookies.remove(TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
-    delete api.defaults.headers.common['Authorization']
-    setToken(null)
-    setUser(null)
-    setError(null)
+  const logout = async () => {
+    try {
+      await api.post('/api/admin/auth/logout')
+    } finally {
+      setUser(null)
+      setError(null)
+    }
   }
 
   const value: AuthContextType = {
     user,
-    token,
+    token: null,
     isLoading,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!user,
     login,
     logout,
     error,

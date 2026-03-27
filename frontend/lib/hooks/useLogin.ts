@@ -6,11 +6,11 @@ export function useLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (username: string, password: string) => {
+  const handleLogin = async (login: string, password: string) => {
     try {
       setIsLoading(true)
       setError(null)
-      await login(username, password)
+      await login(login, password)
       return true
     } catch (err: any) {
       const errorMsg = err.message || 'Login failed'

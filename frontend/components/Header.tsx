@@ -18,8 +18,8 @@ export function Header({ title, description }: HeaderProps) {
   const { logout, user } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     router.push('/login')
   }
 
@@ -57,7 +57,7 @@ export function Header({ title, description }: HeaderProps) {
                 <div className="px-4 py-3 border-b border-border">
                   <p className="text-sm text-muted">{t('dashboard.profile')}</p>
                   <p className="text-sm font-semibold text-foreground">
-                    {user?.fullName || user?.username}
+                    {user?.fullName || user?.login}
                   </p>
                 </div>
                 <button
