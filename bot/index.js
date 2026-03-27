@@ -8,9 +8,17 @@ const {
   Product,
   PromoCode,
   WithdrawalRequest,
-  BalanceTransaction
+  BalanceTransaction,
 } = require("../models");
 const { getLanguageButtons, supportedLocales, t } = require("./i18n");
+const {
+  PAGES,
+  clearFlowState,
+  getSessionState,
+  goBack,
+  resetNavigation,
+  setCurrentPage,
+} = require("./navigation");
 
 const token = process.env.BOT_TOKEN;
 
@@ -22,7 +30,7 @@ const bot = new Telegraf(token);
 const webhookPath = process.env.BOT_WEBHOOK_PATH || "/telegram/webhook";
 const runtimeState = {
   started: false,
-  mode: "stopped"
+  mode: "stopped",
 };
 
 bot.use(session());
@@ -55,23 +63,23 @@ function formatMoney(locale, amount) {
 function getMainMenu(locale) {
   return [
     [t(locale, "activatePromo"), t(locale, "myPromocodes")],
-    [t(locale, "myBalance"), t(locale, "withdraw")]
+    [t(locale, "myBalance"), t(locale, "withdraw")],
   ];
 }
 
-function getCancelMenu(locale) {
-  return [[t(locale, "cancel")]];
+function getBackMenu(locale) {
+  return [[t(locale, "back")]];
 }
 
 function getLanguageKeyboard() {
   return Markup.keyboard(
-    getLanguageButtons().map((item) => [item.label])
+    getLanguageButtons().map((item) => [item.label]),
   ).resize();
 }
 
 function getContactKeyboard(locale) {
   return Markup.keyboard([
-    [Markup.button.contactRequest(t(locale, "contactButton"))]
+    [Markup.button.contactRequest(t(locale, "contactButton"))],
   ]).resize();
 }
 
@@ -79,13 +87,15 @@ function getMainMenuKeyboard(locale) {
   return Markup.keyboard(getMainMenu(locale)).resize();
 }
 
-function getCancelKeyboard(locale) {
-  return Markup.keyboard(getCancelMenu(locale)).resize();
+function getBackKeyboard(locale) {
+  return Markup.keyboard(getBackMenu(locale)).resize();
 }
 
 function resolveLocaleFromText(text) {
   const normalizedText = String(text || "").trim();
-  const match = getLanguageButtons().find((item) => item.label === normalizedText);
+  const match = getLanguageButtons().find(
+    (item) => item.label === normalizedText,
+  );
   return match ? match.locale : null;
 }
 
@@ -101,8 +111,8 @@ async function ensureUser(ctx) {
       chatId,
       username: ctx.from.username || null,
       firstName: ctx.from.first_name || null,
-      lastName: ctx.from.last_name || null
-    }
+      lastName: ctx.from.last_name || null,
+    },
   });
 
   user.chatId = chatId;
@@ -114,24 +124,37 @@ async function ensureUser(ctx) {
   return user;
 }
 
-async function askLanguage(ctx) {
-  await ctx.reply(t("uz", "chooseLanguage"), getLanguageKeyboard());
+async function askLanguage(ctx, options = {}) {
+  const sessionState = getSessionState(ctx);
+  setCurrentPage(sessionState, PAGES.LANGUAGE, options);
+  await ctx.reply(
+    "Tilni tanlang / Выберите язык / Тилни танланг.",
+    getLanguageKeyboard(),
+  );
 }
 
-async function askContact(ctx, user) {
-  await ctx.reply(t(user.language, "sharePhone"), getContactKeyboard(user.language));
+async function askContact(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  setCurrentPage(sessionState, PAGES.CONTACT, options);
+  await ctx.reply(
+    t(user.language, "sharePhone"),
+    getContactKeyboard(user.language),
+  );
 }
 
-async function showMainMenu(ctx, user, messageKey = "mainMenuHint") {
-  await ctx.reply(t(user.language, messageKey), getMainMenuKeyboard(user.language));
-}
-
-function getSession(ctx) {
-  if (!ctx.session) {
-    ctx.session = {};
-  }
-
-  return ctx.session;
+async function showMainMenu(
+  ctx,
+  user,
+  messageKey = "mainMenuHint",
+  options = {},
+) {
+  const sessionState = getSessionState(ctx);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.MAIN_MENU, options);
+  await ctx.reply(
+    t(user.language, messageKey),
+    getMainMenuKeyboard(user.language),
+  );
 }
 
 function normalizeCode(code) {
@@ -141,11 +164,28 @@ function normalizeCode(code) {
     .toUpperCase();
 }
 
+function looksLikePromoCode(rawCode) {
+  const code = normalizeCode(rawCode);
+
+  if (code.length < 6) {
+    return false;
+  }
+
+  if (code.startsWith("TRN-")) {
+    return true;
+  }
+
+  return /^[A-Z0-9]+(?:-[A-Z0-9]+)+$/.test(code) && /[A-Z]/.test(code);
+}
+
 async function activatePromoCode(ctx, user, rawCode) {
   const code = normalizeCode(rawCode);
 
   if (!code) {
-    await ctx.reply(t(user.language, "promoNotFound"), getMainMenuKeyboard(user.language));
+    await ctx.reply(
+      t(user.language, "promoNotFound"),
+      getMainMenuKeyboard(user.language),
+    );
     return;
   }
 
@@ -153,104 +193,121 @@ async function activatePromoCode(ctx, user, rawCode) {
   await sequelize.transaction(async (transaction) => {
     const promoCode = await PromoCode.findOne({
       where: { code },
-      include: [{ model: Product, as: "product" }],
       transaction,
-      lock: transaction.LOCK.UPDATE
+      lock: transaction.LOCK.UPDATE,
     });
 
     if (!promoCode) {
       activationResult = {
-        status: "not_found"
+        status: "not_found",
       };
       return;
     }
 
     if (promoCode.status === "activated") {
       activationResult = {
-        status: "already_used"
+        status: "already_used",
+      };
+      return;
+    }
+
+    const product = await Product.findByPk(promoCode.productId, {
+      transaction,
+    });
+
+    if (!product) {
+      activationResult = {
+        status: "not_found",
       };
       return;
     }
 
     const lockedUser = await User.findByPk(user.id, {
       transaction,
-      lock: transaction.LOCK.UPDATE
+      lock: transaction.LOCK.UPDATE,
     });
 
-    const bonusAmount = Number(promoCode.product.bonusAmount);
+    const bonusAmount = Number(product.bonusAmount);
     const newBalance = Number(lockedUser.balance) + bonusAmount;
 
     await promoCode.update(
       {
         status: "activated",
         activatedAt: new Date(),
-        activatedByUserId: user.id
+        activatedByUserId: user.id,
       },
-      { transaction }
+      { transaction },
     );
 
     await lockedUser.update(
       {
-        balance: newBalance
+        balance: newBalance,
       },
-      { transaction }
+      { transaction },
     );
 
     await BalanceTransaction.create(
       {
         userId: user.id,
         type: "promo_activation",
-        amount: promoCode.product.bonusAmount,
+        amount: product.bonusAmount,
         metadata: {
           promoCode: promoCode.code,
           productId: promoCode.productId,
-          productName: promoCode.product.name
-        }
+          productName: product.name,
+        },
       },
-      { transaction }
+      { transaction },
     );
 
     activationResult = {
       status: "activated",
-      bonusAmount
+      bonusAmount,
     };
   });
 
   await user.reload();
 
   if (!activationResult || activationResult.status === "not_found") {
-    await ctx.reply(t(user.language, "promoNotFound"), getMainMenuKeyboard(user.language));
+    await ctx.reply(
+      t(user.language, "promoNotFound"),
+      getMainMenuKeyboard(user.language),
+    );
     return;
   }
 
   if (activationResult.status === "already_used") {
     await ctx.reply(
       t(user.language, "promoAlreadyUsed"),
-      getMainMenuKeyboard(user.language)
+      getMainMenuKeyboard(user.language),
     );
     return;
   }
 
   await ctx.reply(
     t(user.language, "promoActivated", {
-      amount: formatMoney(user.language, activationResult.bonusAmount)
+      amount: formatMoney(user.language, activationResult.bonusAmount),
     }),
-    getMainMenuKeyboard(user.language)
+    getMainMenuKeyboard(user.language),
   );
 }
 
-async function listMyPromoCodes(ctx, user) {
+async function listMyPromoCodes(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.PROMO_LIST, options);
+
   const codes = await PromoCode.findAll({
     where: { activatedByUserId: user.id },
     include: [{ model: Product, as: "product" }],
     order: [["activatedAt", "DESC"]],
-    limit: 30
+    limit: 30,
   });
 
   if (!codes.length) {
     await ctx.reply(
       t(user.language, "myPromoCodesEmpty"),
-      getMainMenuKeyboard(user.language)
+      getBackKeyboard(user.language),
     );
     return;
   }
@@ -262,16 +319,20 @@ async function listMyPromoCodes(ctx, user) {
 
   await ctx.reply(
     `${t(user.language, "myPromoCodesTitle")}\n\n${lines.join("\n")}`,
-    getMainMenuKeyboard(user.language)
+    getBackKeyboard(user.language),
   );
 }
 
-async function showBalance(ctx, user) {
+async function showBalance(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.BALANCE, options);
+
   await ctx.reply(
     t(user.language, "balanceText", {
-      amount: formatMoney(user.language, user.balance)
+      amount: formatMoney(user.language, user.balance),
     }),
-    getMainMenuKeyboard(user.language)
+    getBackKeyboard(user.language),
   );
 }
 
@@ -279,7 +340,7 @@ async function createWithdrawalRequest(ctx, user, cardNumber, amount) {
   await sequelize.transaction(async (transaction) => {
     const lockedUser = await User.findByPk(user.id, {
       transaction,
-      lock: transaction.LOCK.UPDATE
+      lock: transaction.LOCK.UPDATE,
     });
     const newBalance = Number(lockedUser.balance) - Number(amount);
 
@@ -289,18 +350,18 @@ async function createWithdrawalRequest(ctx, user, cardNumber, amount) {
 
     await lockedUser.update(
       {
-        balance: newBalance
+        balance: newBalance,
       },
-      { transaction }
+      { transaction },
     );
 
     await WithdrawalRequest.create(
       {
         userId: user.id,
         amount,
-        cardNumber
+        cardNumber,
       },
-      { transaction }
+      { transaction },
     );
 
     await BalanceTransaction.create(
@@ -309,64 +370,134 @@ async function createWithdrawalRequest(ctx, user, cardNumber, amount) {
         type: "withdrawal_request",
         amount: -Math.abs(Number(amount)),
         metadata: {
-          cardNumber
-        }
+          cardNumber,
+        },
       },
-      { transaction }
+      { transaction },
     );
   });
 
   await user.reload();
   await ctx.reply(
     t(user.language, "withdrawalCreated"),
-    getMainMenuKeyboard(user.language)
+    getMainMenuKeyboard(user.language),
   );
+}
+
+async function askPromoCode(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  sessionState.step = "awaiting_promo_code";
+  setCurrentPage(sessionState, PAGES.PROMO_INPUT, options);
+  await ctx.reply(
+    t(user.language, "enterPromoCode"),
+    getBackKeyboard(user.language),
+  );
+}
+
+async function askWithdrawalAmount(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  sessionState.step = "awaiting_withdrawal_amount";
+  setCurrentPage(sessionState, PAGES.WITHDRAWAL_AMOUNT, options);
+  await ctx.reply(
+    t(user.language, "enterWithdrawalAmount"),
+    getBackKeyboard(user.language),
+  );
+}
+
+async function askWithdrawalCard(ctx, user, amount, options = {}) {
+  const sessionState = getSessionState(ctx);
+  sessionState.step = "awaiting_withdrawal_card";
+  sessionState.withdrawalAmount = amount;
+  setCurrentPage(sessionState, PAGES.WITHDRAWAL_CARD, options);
+  await ctx.reply(
+    t(user.language, "enterCardNumber"),
+    getBackKeyboard(user.language),
+  );
+}
+
+async function renderPage(ctx, user, page, options = {}) {
+  switch (page) {
+    case PAGES.LANGUAGE:
+      await askLanguage(ctx, options);
+      break;
+    case PAGES.CONTACT:
+      await askContact(ctx, user, options);
+      break;
+    case PAGES.PROMO_INPUT:
+      await askPromoCode(ctx, user, options);
+      break;
+    case PAGES.PROMO_LIST:
+      await listMyPromoCodes(ctx, user, options);
+      break;
+    case PAGES.BALANCE:
+      await showBalance(ctx, user, options);
+      break;
+    case PAGES.WITHDRAWAL_AMOUNT:
+      await askWithdrawalAmount(ctx, user, options);
+      break;
+    case PAGES.WITHDRAWAL_CARD:
+      await askWithdrawalCard(
+        ctx,
+        user,
+        getSessionState(ctx).withdrawalAmount || 0,
+        options,
+      );
+      break;
+    case PAGES.MAIN_MENU:
+    default:
+      await showMainMenu(ctx, user, "mainMenuHint", options);
+      break;
+  }
 }
 
 bot.start(async (ctx) => {
   const user = await ensureUser(ctx);
-  const sessionState = getSession(ctx);
-  sessionState.step = null;
+  const sessionState = getSessionState(ctx);
+  resetNavigation(sessionState);
 
-  if (!isSupportedLocale(user.language)) {
-    await askLanguage(ctx);
+  if (!user.isRegistered || !isSupportedLocale(user.language)) {
+    await askLanguage(ctx, { replace: true });
     return;
   }
 
-  if (!user.isRegistered) {
-    await askContact(ctx, user);
-    return;
-  }
-
-  await showMainMenu(ctx, user);
+  await showMainMenu(ctx, user, "mainMenuHint", { replace: true });
 });
 
 bot.on("contact", async (ctx) => {
   const user = await ensureUser(ctx);
+  const sessionState = getSessionState(ctx);
   const locale = isSupportedLocale(user.language) ? user.language : "uz";
 
-  if (ctx.message.contact.user_id && ctx.message.contact.user_id !== ctx.from.id) {
+  if (!user.isRegistered && sessionState.pageKey !== PAGES.CONTACT) {
+    await askLanguage(ctx, { replace: true });
+    return;
+  }
+
+  if (
+    ctx.message.contact.user_id &&
+    ctx.message.contact.user_id !== ctx.from.id
+  ) {
     await ctx.reply(t(locale, "requestOwnContact"), getContactKeyboard(locale));
     return;
   }
 
   await user.update({
     phoneNumber: ctx.message.contact.phone_number,
-    isRegistered: true
+    isRegistered: true,
   });
 
-  const sessionState = getSession(ctx);
-  sessionState.step = null;
+  resetNavigation(sessionState);
 
   await ctx.reply(
     t(user.language, "registrationDone"),
-    getMainMenuKeyboard(user.language)
+    getMainMenuKeyboard(user.language),
   );
+  setCurrentPage(sessionState, PAGES.MAIN_MENU, { replace: true });
 });
 
 bot.on("text", async (ctx) => {
   const user = await ensureUser(ctx);
-  const sessionState = getSession(ctx);
+  const sessionState = getSessionState(ctx);
   const text = String(ctx.message.text || "").trim();
   const selectedLocale = resolveLocaleFromText(text);
 
@@ -374,16 +505,24 @@ bot.on("text", async (ctx) => {
     await user.update({ language: selectedLocale });
 
     if (user.isRegistered) {
-      sessionState.step = null;
       await ctx.reply(
         t(selectedLocale, "languageSaved"),
-        getMainMenuKeyboard(selectedLocale)
+        getMainMenuKeyboard(selectedLocale),
       );
+      resetNavigation(sessionState, PAGES.MAIN_MENU);
       return;
     }
 
-    await ctx.reply(t(selectedLocale, "languageSaved"), getContactKeyboard(selectedLocale));
-    await ctx.reply(t(selectedLocale, "sharePhone"), getContactKeyboard(selectedLocale));
+    clearFlowState(sessionState);
+    setCurrentPage(sessionState, PAGES.CONTACT, { replace: true });
+    await ctx.reply(
+      t(selectedLocale, "languageSaved"),
+      getContactKeyboard(selectedLocale),
+    );
+    await ctx.reply(
+      t(selectedLocale, "sharePhone"),
+      getContactKeyboard(selectedLocale),
+    );
     return;
   }
 
@@ -393,31 +532,45 @@ bot.on("text", async (ctx) => {
   }
 
   if (!user.isRegistered) {
-    await ctx.reply(t(user.language, "contactRequestOnly"), getContactKeyboard(user.language));
+    if (sessionState.pageKey !== PAGES.CONTACT) {
+      await askLanguage(ctx, { replace: true });
+      return;
+    }
+
+    await ctx.reply(
+      t(user.language, "contactRequestOnly"),
+      getContactKeyboard(user.language),
+    );
+    return;
+  }
+
+  if (text === t(user.language, "back")) {
+    clearFlowState(sessionState);
+    const previousPage = goBack(sessionState, PAGES.MAIN_MENU);
+    await renderPage(ctx, user, previousPage, { replace: true });
     return;
   }
 
   if (text === t(user.language, "cancel")) {
-    sessionState.step = null;
-    sessionState.withdrawalAmount = null;
-    await ctx.reply(t(user.language, "actionCanceled"), getMainMenuKeyboard(user.language));
+    resetNavigation(sessionState, PAGES.MAIN_MENU);
+    await ctx.reply(
+      t(user.language, "actionCanceled"),
+      getMainMenuKeyboard(user.language),
+    );
     return;
   }
 
   if (text === t(user.language, "activatePromo")) {
-    sessionState.step = "awaiting_promo_code";
-    await ctx.reply(t(user.language, "enterPromoCode"), getCancelKeyboard(user.language));
+    await askPromoCode(ctx, user);
     return;
   }
 
   if (text === t(user.language, "myPromocodes")) {
-    sessionState.step = null;
     await listMyPromoCodes(ctx, user);
     return;
   }
 
   if (text === t(user.language, "myBalance")) {
-    sessionState.step = null;
     await showBalance(ctx, user);
     return;
   }
@@ -426,21 +579,24 @@ bot.on("text", async (ctx) => {
     if (Number(user.balance) <= 0) {
       await ctx.reply(
         t(user.language, "withdrawalNoBalance"),
-        getMainMenuKeyboard(user.language)
+        getMainMenuKeyboard(user.language),
       );
       return;
     }
 
-    sessionState.step = "awaiting_withdrawal_amount";
-    await ctx.reply(
-      t(user.language, "enterWithdrawalAmount"),
-      getCancelKeyboard(user.language)
-    );
+    await askWithdrawalAmount(ctx, user);
     return;
   }
 
   if (sessionState.step === "awaiting_promo_code") {
-    sessionState.step = null;
+    clearFlowState(sessionState);
+    resetNavigation(sessionState, PAGES.MAIN_MENU);
+    await activatePromoCode(ctx, user, text);
+    return;
+  }
+
+  if (looksLikePromoCode(text)) {
+    resetNavigation(sessionState, PAGES.MAIN_MENU);
     await activatePromoCode(ctx, user, text);
     return;
   }
@@ -451,7 +607,7 @@ bot.on("text", async (ctx) => {
     if (!amount) {
       await ctx.reply(
         t(user.language, "invalidWithdrawalAmount"),
-        getCancelKeyboard(user.language)
+        getBackKeyboard(user.language),
       );
       return;
     }
@@ -459,16 +615,14 @@ bot.on("text", async (ctx) => {
     if (amount > Number(user.balance)) {
       await ctx.reply(
         t(user.language, "withdrawalTooMuch", {
-          amount: formatMoney(user.language, user.balance)
+          amount: formatMoney(user.language, user.balance),
         }),
-        getCancelKeyboard(user.language)
+        getBackKeyboard(user.language),
       );
       return;
     }
 
-    sessionState.step = "awaiting_withdrawal_card";
-    sessionState.withdrawalAmount = amount;
-    await ctx.reply(t(user.language, "enterCardNumber"), getCancelKeyboard(user.language));
+    await askWithdrawalCard(ctx, user, amount);
     return;
   }
 
@@ -477,19 +631,22 @@ bot.on("text", async (ctx) => {
     const cardNumber = text.replace(/\s+/g, " ").trim();
 
     if (!amount || !cardNumber) {
-      sessionState.step = null;
-      sessionState.withdrawalAmount = null;
-      await ctx.reply(t(user.language, "invalidWithdrawalAmount"), getMainMenuKeyboard(user.language));
+      await ctx.reply(
+        t(user.language, "invalidWithdrawalAmount"),
+        getBackKeyboard(user.language),
+      );
       return;
     }
 
-    sessionState.step = null;
-    sessionState.withdrawalAmount = null;
+    resetNavigation(sessionState, PAGES.MAIN_MENU);
     await createWithdrawalRequest(ctx, user, cardNumber, amount);
     return;
   }
 
-  await ctx.reply(t(user.language, "unknownMenuAction"), getMainMenuKeyboard(user.language));
+  await ctx.reply(
+    t(user.language, "unknownMenuAction"),
+    getMainMenuKeyboard(user.language),
+  );
 });
 
 bot.catch((error) => {
@@ -499,7 +656,7 @@ bot.catch((error) => {
 
 async function startBotRuntime() {
   await bot.telegram.setMyCommands([
-    { command: "start", description: "Botni ishga tushirish" }
+    { command: "start", description: "Botni ishga tushirish" },
   ]);
 
   if (runtimeState.started) {
@@ -521,10 +678,10 @@ async function startBotRuntime() {
   }
 
   await bot.telegram.deleteWebhook({
-    drop_pending_updates: true
+    drop_pending_updates: true,
   });
   await bot.launch({
-    dropPendingUpdates: true
+    dropPendingUpdates: true,
   });
   runtimeState.started = true;
   runtimeState.mode = "polling";
@@ -541,7 +698,7 @@ async function stopBotRuntime(reason = "shutdown") {
   if (runtimeState.mode === "webhook") {
     try {
       await bot.telegram.deleteWebhook({
-        drop_pending_updates: false
+        drop_pending_updates: false,
       });
     } catch {}
   }
@@ -558,5 +715,5 @@ module.exports = {
   startBotRuntime,
   stopBotRuntime,
   t,
-  formatMoney
+  formatMoney,
 };

@@ -1,4 +1,7 @@
 node_modules
 .env
-frontend-dist
-uploads/receipts/*
+frontend/dist
+frontend/out
+frontend/.next
+frontend/tsconfig.tsbuildinfo
+backend/uploads/receipts/*

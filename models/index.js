@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const { Sequelize } = require("sequelize");
-const { createPasswordDigest } = require("../services/password");
+const { seedDefaultAdminUser } = require("../seeders/default-admin-user");
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -75,45 +75,38 @@ async function initDatabase() {
         }
       : undefined
   );
+  await ensureWithdrawalReceiptColumns();
   await ensureAdminUser();
 }
 
 async function ensureAdminUser() {
-  const login = String(process.env.ADMIN_LOGIN || "")
-    .trim()
-    .toLowerCase();
-  const password = String(process.env.ADMIN_PASSWORD || "").trim();
+  await seedDefaultAdminUser(User);
+}
 
-  if (!login || !password) {
-    console.warn(
-      "ADMIN_LOGIN yoki ADMIN_PASSWORD topilmadi. Admin panel uchun admin user yaratilmaydi."
-    );
-    return;
+async function ensureWithdrawalReceiptColumns() {
+  const queryInterface = sequelize.getQueryInterface();
+  const table = await queryInterface.describeTable("withdrawal_requests");
+
+  if (!table.receipt_image_data) {
+    await queryInterface.addColumn("withdrawal_requests", "receipt_image_data", {
+      type: Sequelize.BLOB("long"),
+      allowNull: true
+    });
   }
 
-  const digest = createPasswordDigest(password);
-  const [adminUser, created] = await User.findOrCreate({
-    where: { login },
-    defaults: {
-      role: "admin",
-      login,
-      firstName: process.env.ADMIN_NAME || "Admin",
-      isRegistered: true,
-      passwordHash: digest.hash,
-      passwordSalt: digest.salt
-    }
-  });
-
-  if (created) {
-    return;
+  if (!table.receipt_image_mime_type) {
+    await queryInterface.addColumn("withdrawal_requests", "receipt_image_mime_type", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
   }
 
-  adminUser.role = "admin";
-  adminUser.isRegistered = true;
-  adminUser.firstName = adminUser.firstName || process.env.ADMIN_NAME || "Admin";
-  adminUser.passwordHash = digest.hash;
-  adminUser.passwordSalt = digest.salt;
-  await adminUser.save();
+  if (!table.receipt_image_name) {
+    await queryInterface.addColumn("withdrawal_requests", "receipt_image_name", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
 }
 
 module.exports = {

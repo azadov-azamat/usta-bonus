@@ -14,9 +14,16 @@ Telegram bot va admin paneldan iborat promo tizimi:
 ## Texnologiyalar
 
 - Backend: Express, Telegraf, Sequelize, PostgreSQL
-- Frontend: Vite, React, TypeScript
+- Frontend: Next.js, React, TypeScript, shadcn/ui
 - Upload/import: Multer, XLSX
 - i18n: i18next
+
+## Tuzilma
+
+- `backend/` - Express server, admin API, middleware, model, service, script va seederlar
+- `bot/` - Telegram bot oqimi va bot i18n
+- `frontend/` - Next.js app router, shadcn config, TypeScript config, source va export build fayllari
+- `.env` / `.env.example` - environment sozlamalari
 
 ## Sozlash
 
@@ -57,8 +64,18 @@ yarn start
 Admin panel development:
 
 ```bash
+yarn start
 yarn dev:admin
 ```
+
+Yoki frontend papkasi ichidan:
+
+```bash
+cd frontend
+yarn dev
+```
+
+`yarn start` backend'ni `http://localhost:3000` da, `yarn dev:admin` esa Next frontend'ni `http://localhost:3001` da ishga tushiradi. Frontend `/api/admin/*` so'rovlarini avtomatik ravishda backend'ga proxy qiladi.
 
 Admin panel production build:
 
@@ -66,14 +83,21 @@ Admin panel production build:
 yarn build:admin
 ```
 
-Build qilingan admin panel backend orqali `/admin` da serve qilinadi.
+Build qilingan admin panel Next build sifatida yig'iladi. Uni alohida Next server bilan ishga tushirish kerak.
 
 ## Admin autentifikatsiya
 
 - `users` jadvaliga `role`, `login`, `password_hash`, `password_salt` maydonlari qo'shilgan
-- admin user `.env` dagi `ADMIN_LOGIN` va `ADMIN_PASSWORD` orqali yaratiladi yoki yangilanadi
+- admin user default seed orqali yaratiladi yoki yangilanadi
+- agar `.env` da qiymat berilmasa, default login/parol `.env.example` bilan bir xil bo'ladi: `admin / changeme123`
 - parol oddiy matnda saqlanmaydi, `salt + hash` ko'rinishida yoziladi
 - admin sessiya `httpOnly` cookie orqali boshqariladi
+
+Admin userni alohida seed qilish:
+
+```bash
+yarn seed:admin
+```
 
 ## Admin panel bo'limlari
 

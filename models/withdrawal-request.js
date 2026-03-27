@@ -26,6 +26,18 @@ module.exports = (sequelize) =>
         type: DataTypes.DATE,
         allowNull: true
       },
+      receiptImageData: {
+        type: DataTypes.BLOB("long"),
+        allowNull: true
+      },
+      receiptImageMimeType: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      receiptImageName: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       receiptImagePath: {
         type: DataTypes.STRING,
         allowNull: true

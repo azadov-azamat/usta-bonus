@@ -16,6 +16,7 @@ const resources = {
       myPromocodes: "Promokodlarim",
       myBalance: "Balansim",
       withdraw: "Pul yechish",
+      back: "Orqaga",
       cancel: "Bekor qilish",
       enterPromoCode: "Promokodni yuboring.",
       promoActivated:
@@ -64,6 +65,7 @@ const resources = {
       myPromocodes: "Мои промокоды",
       myBalance: "Мой баланс",
       withdraw: "Вывод средств",
+      back: "Назад",
       cancel: "Отмена",
       enterPromoCode: "Отправьте промокод.",
       promoActivated:
@@ -111,6 +113,7 @@ const resources = {
       myPromocodes: "Промокодларим",
       myBalance: "Балансим",
       withdraw: "Пул ечиш",
+      back: "Орқага",
       cancel: "Бекор қилиш",
       enterPromoCode: "Промокодни юборинг.",
       promoActivated:

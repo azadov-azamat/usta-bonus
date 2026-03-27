@@ -10,7 +10,7 @@ const { bot, getWebhookPath, getWebhookUrl } = require("./bot");
 
 const app = express();
 const webhookPath = getWebhookPath();
-const frontendBuildPath = path.join(__dirname, "frontend-dist");
+const frontendBuildPath = path.join(__dirname, "..", "frontend", "out");
 const frontendIndexPath = path.join(frontendBuildPath, "index.html");
 const hasFrontendBuild = fs.existsSync(frontendIndexPath);
 
@@ -18,8 +18,8 @@ app.disable("x-powered-by");
 app.use(
   cors({
     credentials: true,
-    origin: true
-  })
+    origin: true,
+  }),
 );
 app.use(morgan("dev"));
 app.use(express.json());
@@ -52,9 +52,6 @@ app.use(bot.webhookCallback(webhookPath));
 
 if (hasFrontendBuild) {
   app.use("/admin", express.static(frontendBuildPath));
-  app.get("/admin/*", (req, res) => {
-    res.sendFile(frontendIndexPath);
-  });
 }
 
 app.use((req, res) => {
