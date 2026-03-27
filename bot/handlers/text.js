@@ -14,6 +14,8 @@ const {
   promptForPhone,
   renderPage,
   showBalance,
+  showLanguageSettings,
+  showSettingsMenu,
 } = require("../services/menu-service");
 const {
   hasPhoneNumber,
@@ -60,7 +62,16 @@ async function replyPromoActivationResult(ctx, user, result) {
 }
 
 async function handleLanguageSelection(ctx, user, selectedLocale, sessionState) {
+  const isSettingsLanguagePage =
+    sessionState.pageKey === PAGES.SETTINGS_LANGUAGE && hasPhoneNumber(user);
+
   await setUserLanguage(user, selectedLocale);
+
+  if (isSettingsLanguagePage) {
+    goBack(sessionState, PAGES.SETTINGS);
+    await showSettingsMenu(ctx, user, "languageSaved", { replace: true });
+    return;
+  }
 
   if (hasPhoneNumber(user)) {
     resetNavigation(sessionState, PAGES.MAIN_MENU);
@@ -75,13 +86,21 @@ async function handleLanguageSelection(ctx, user, selectedLocale, sessionState) 
   await promptForPhone(ctx, user, { replace: true });
 }
 
+function canHandleLanguageSelection(sessionState, user) {
+  return (
+    !hasSelectedLanguage(user) ||
+    sessionState.pageKey === PAGES.LANGUAGE ||
+    sessionState.pageKey === PAGES.SETTINGS_LANGUAGE
+  );
+}
+
 async function handleText(ctx) {
   const user = ctx.state.user;
   const sessionState = getSessionState(ctx);
   const text = String(ctx.message.text || "").trim();
   const selectedLocale = ctx.state.selectedLocale;
 
-  if (selectedLocale) {
+  if (selectedLocale && canHandleLanguageSelection(sessionState, user)) {
     await handleLanguageSelection(ctx, user, selectedLocale, sessionState);
     return;
   }
@@ -143,6 +162,16 @@ async function handleText(ctx) {
     }
 
     await askWithdrawalAmount(ctx, user);
+    return;
+  }
+
+  if (text === t(locale, "settings")) {
+    await showSettingsMenu(ctx, user);
+    return;
+  }
+
+  if (text === t(locale, "changeLanguage")) {
+    await showLanguageSettings(ctx, user);
     return;
   }
 

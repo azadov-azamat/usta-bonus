@@ -4,7 +4,8 @@ const {
   getContactKeyboard,
   getLanguageKeyboard,
   getMainMenuKeyboard,
-  getPromoCodeCopyKeyboard,
+  getPromoCodeKeyboard,
+  getSettingsKeyboard,
 } = require("../keyboards");
 const {
   PAGES,
@@ -14,10 +15,80 @@ const {
 } = require("../state/navigation");
 const { formatMoney, formatMoneyWithUnit } = require("../utils/formatters");
 const { getUserLocale } = require("../utils/locale");
-const { listUserPromoCodes } = require("./promo-service");
+const { listUserPromoCodesPage } = require("./promo-service");
+const PROMO_MORE_ACTION_REGEX = /^promo_more:(\d+)$/;
+
+function getPromoMoreAction(offset) {
+  return `promo_more:${offset}`;
+}
+
+function getPromoCodeMessageText(locale, promoCode, index) {
+  const productName = promoCode.product?.name || "-";
+  const amount = formatMoneyWithUnit(
+    locale,
+    promoCode.product?.bonusAmount || 0,
+  );
+
+  return [
+    `${index + 1}. ${t(locale, "productLabel")}: ${productName}`,
+    `${t(locale, "priceLabel")}: ${amount}`,
+  ].join("\n");
+}
+
+function getVisibleRowsWithoutCallback(message, callbackData) {
+  const inlineKeyboard = message?.reply_markup?.inline_keyboard;
+
+  if (!Array.isArray(inlineKeyboard)) {
+    return null;
+  }
+
+  return inlineKeyboard
+    .map((row) =>
+      row.filter(
+        (button) =>
+          !button.callback_data || button.callback_data !== callbackData,
+      ),
+    )
+    .filter((row) => row.length > 0);
+}
+
+async function sendPromoCodesPage(ctx, user, offset = 0, options = {}) {
+  const locale = getUserLocale(user);
+  const { showHeader = false } = options;
+  const { items, nextOffset } = await listUserPromoCodesPage(user.id, offset);
+
+  if (!items.length) {
+    return false;
+  }
+
+  if (showHeader) {
+    await ctx.reply(
+      t(locale, "myPromoCodesTitle"),
+      getBackKeyboard(locale),
+    );
+  }
+
+  for (const [index, promoCode] of items.entries()) {
+    const absoluteIndex = offset + index;
+    const isLastVisibleCode = index === items.length - 1;
+
+    await ctx.reply(
+      getPromoCodeMessageText(locale, promoCode, absoluteIndex),
+      getPromoCodeKeyboard(locale, promoCode.code, absoluteIndex, {
+        showMoreCallbackData:
+          isLastVisibleCode && nextOffset !== null
+            ? getPromoMoreAction(nextOffset)
+            : null,
+      }),
+    );
+  }
+
+  return true;
+}
 
 async function promptForLanguage(ctx, options = {}) {
   const sessionState = getSessionState(ctx);
+  clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.LANGUAGE, options);
   await ctx.reply(
     "Tilni tanlang / Выберите язык / Тилни танланг.",
@@ -51,6 +122,33 @@ async function showMainMenu(
   );
 }
 
+async function showSettingsMenu(
+  ctx,
+  user,
+  messageKey = "settingsHint",
+  options = {},
+) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.SETTINGS, options);
+  await ctx.reply(
+    t(locale, messageKey),
+    getSettingsKeyboard(locale),
+  );
+}
+
+async function showLanguageSettings(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.SETTINGS_LANGUAGE, options);
+  await ctx.reply(
+    t(locale, "chooseLanguage"),
+    getLanguageKeyboard(locale, { showBack: true }),
+  );
+}
+
 async function askPromoCode(ctx, user, options = {}) {
   const sessionState = getSessionState(ctx);
   const locale = getUserLocale(user);
@@ -68,38 +166,47 @@ async function listMyPromoCodes(ctx, user, options = {}) {
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.PROMO_LIST, options);
 
-  const codes = await listUserPromoCodes(user.id);
+  const hasCodes = await sendPromoCodesPage(ctx, user, 0, {
+    showHeader: true,
+  });
 
-  if (!codes.length) {
+  if (!hasCodes) {
     await ctx.reply(
       t(locale, "myPromoCodesEmpty"),
       getBackKeyboard(locale),
     );
+  }
+}
+
+async function showMorePromoCodes(ctx, user, offset) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  const callbackData = getPromoMoreAction(offset);
+  const visibleRows = getVisibleRowsWithoutCallback(
+    ctx.callbackQuery?.message,
+    callbackData,
+  );
+  const { items } = await listUserPromoCodesPage(user.id, offset);
+
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.PROMO_LIST, { replace: true });
+
+  if (!items.length) {
+    await ctx.answerCbQuery(t(locale, "allPromoCodesShown"));
     return;
   }
 
-  await ctx.reply(
-    `${t(locale, "myPromoCodesTitle")}\n${t(locale, "myPromoCodesCopyHint")}`,
-    getBackKeyboard(locale),
-  );
+  await ctx.answerCbQuery();
 
-  const lines = codes.map((code, index) => {
-    const productName = code.product?.name || "-";
-    const amount = formatMoneyWithUnit(
-      locale,
-      code.product?.bonusAmount || 0,
-    );
+  if (visibleRows) {
+    try {
+      await ctx.editMessageReplyMarkup({
+        inline_keyboard: visibleRows,
+      });
+    } catch {}
+  }
 
-    return [
-      `${index + 1}. ${t(locale, "productLabel")}: ${productName}`,
-      `${t(locale, "priceLabel")}: ${amount}`,
-    ].join("\n");
-  });
-
-  await ctx.reply(
-    lines.join("\n\n"),
-    getPromoCodeCopyKeyboard(codes),
-  );
+  await sendPromoCodesPage(ctx, user, offset);
 }
 
 async function showBalance(ctx, user, options = {}) {
@@ -122,7 +229,9 @@ async function askWithdrawalAmount(ctx, user, options = {}) {
   sessionState.step = "awaiting_withdrawal_amount";
   setCurrentPage(sessionState, PAGES.WITHDRAWAL_AMOUNT, options);
   await ctx.reply(
-    t(locale, "enterWithdrawalAmount"),
+    t(locale, "enterWithdrawalAmount", {
+      amount: formatMoney(locale, user.balance),
+    }),
     getBackKeyboard(locale),
   );
 }
@@ -146,6 +255,12 @@ async function renderPage(ctx, user, page, options = {}) {
       break;
     case PAGES.CONTACT:
       await promptForPhone(ctx, user, options);
+      break;
+    case PAGES.SETTINGS:
+      await showSettingsMenu(ctx, user, "settingsHint", options);
+      break;
+    case PAGES.SETTINGS_LANGUAGE:
+      await showLanguageSettings(ctx, user, options);
       break;
     case PAGES.PROMO_INPUT:
       await askPromoCode(ctx, user, options);
@@ -182,6 +297,10 @@ module.exports = {
   promptForLanguage,
   promptForPhone,
   renderPage,
+  PROMO_MORE_ACTION_REGEX,
   showBalance,
+  showLanguageSettings,
+  showMorePromoCodes,
   showMainMenu,
+  showSettingsMenu,
 };

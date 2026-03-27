@@ -6,6 +6,7 @@ const {
   BalanceTransaction,
 } = require("../../models");
 const { normalizeCode } = require("../utils/promo-code");
+const PROMO_CODES_PAGE_SIZE = 10;
 
 async function activatePromoCode(user, rawCode) {
   const code = normalizeCode(rawCode);
@@ -101,16 +102,26 @@ async function activatePromoCode(user, rawCode) {
   };
 }
 
-function listUserPromoCodes(userId) {
-  return PromoCode.findAll({
+async function listUserPromoCodesPage(userId, offset = 0) {
+  const promoCodes = await PromoCode.findAll({
     where: { activatedByUserId: userId },
     include: [{ model: Product, as: "product" }],
     order: [["activatedAt", "DESC"]],
-    limit: 30,
+    offset,
+    limit: PROMO_CODES_PAGE_SIZE + 1,
   });
+
+  return {
+    items: promoCodes.slice(0, PROMO_CODES_PAGE_SIZE),
+    nextOffset:
+      promoCodes.length > PROMO_CODES_PAGE_SIZE
+        ? offset + PROMO_CODES_PAGE_SIZE
+        : null,
+  };
 }
 
 module.exports = {
   activatePromoCode,
-  listUserPromoCodes,
+  listUserPromoCodesPage,
+  PROMO_CODES_PAGE_SIZE,
 };

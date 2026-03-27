@@ -16,6 +16,9 @@ const resources = {
       myPromocodes: "Promokodlarim",
       myBalance: "Balansim",
       withdraw: "Pul yechish",
+      settings: "Sozlamalar",
+      settingsHint: "Sozlamalar bo'limidan kerakli amalni tanlang.",
+      changeLanguage: "Tilni o'zgartirish",
       back: "Orqaga",
       cancel: "Bekor qilish",
       enterPromoCode: "Promokodni yuboring.",
@@ -25,7 +28,6 @@ const resources = {
       promoAlreadyUsed: "Bu promokod allaqachon ishlatilgan.",
       myPromoCodesEmpty: "Sizda hali aktivlashtirilgan promokodlar yo'q.",
       myPromoCodesTitle: "Sizning promokodlaringiz:",
-      myPromoCodesCopyHint: "Promokodni nusxalash uchun tugmani bosing.",
       showMorePromoCodes: "Yana ko'rsatish",
       allPromoCodesShown: "Barcha promokodlar ko'rsatildi.",
       productLabel: "Mahsulot",
@@ -51,6 +53,8 @@ const resources = {
       requestOwnContact:
         "Iltimos, aynan o'zingizning telefon raqamingizni yuboring.",
       notRegistered: "Avval registratsiyani yakunlang.",
+      helpMessage:
+        "Foydali komandalar:\n/start - asosiy menyuni ochadi\n/help - yordam oynasini ochadi\n\nAsosiy menyudan promokodni aktivlashtirish, promokodlar ro'yxatini ko'rish, balansni tekshirish, pul yechish va Sozlamalar -> Tilni o'zgartirish bo'limiga o'tishingiz mumkin.",
       languageNames: {
         uz: "O'zbekcha",
         ru: "Русский",
@@ -71,6 +75,9 @@ const resources = {
       myPromocodes: "Мои промокоды",
       myBalance: "Мой баланс",
       withdraw: "Вывод средств",
+      settings: "Настройки",
+      settingsHint: "Выберите нужное действие в разделе настроек.",
+      changeLanguage: "Сменить язык",
       back: "Назад",
       cancel: "Отмена",
       enterPromoCode: "Отправьте промокод.",
@@ -80,7 +87,6 @@ const resources = {
       promoAlreadyUsed: "Этот промокод уже использован.",
       myPromoCodesEmpty: "У вас пока нет активированных промокодов.",
       myPromoCodesTitle: "Ваши промокоды:",
-      myPromoCodesCopyHint: "Нажмите на кнопку, чтобы скопировать промокод.",
       showMorePromoCodes: "Показать еще",
       allPromoCodesShown: "Все промокоды уже показаны.",
       productLabel: "Товар",
@@ -104,6 +110,8 @@ const resources = {
         "Здравствуйте. Ваш перевод на сумму {{amount}} сум выполнен.",
       requestOwnContact: "Пожалуйста, отправьте именно свой номер телефона.",
       notRegistered: "Сначала завершите регистрацию.",
+      helpMessage:
+        "Полезные команды:\n/start - открыть главное меню\n/help - открыть справку\n\nВ главном меню можно активировать промокод, посмотреть список промокодов, проверить баланс, вывести средства и открыть Настройки -> Сменить язык.",
       languageNames: {
         uz: "O'zbekcha",
         ru: "Русский",
@@ -125,6 +133,9 @@ const resources = {
       myPromocodes: "Промокодларим",
       myBalance: "Балансим",
       withdraw: "Пул ечиш",
+      settings: "Созламалар",
+      settingsHint: "Созламалар бўлимида керакли амални танланг.",
+      changeLanguage: "Тилни ўзгартириш",
       back: "Орқага",
       cancel: "Бекор қилиш",
       enterPromoCode: "Промокодни юборинг.",
@@ -134,7 +145,6 @@ const resources = {
       promoAlreadyUsed: "Бу промокод аллақачон ишлатилган.",
       myPromoCodesEmpty: "Сизда ҳали активлаштирилган промокодлар йўқ.",
       myPromoCodesTitle: "Сизнинг промокодларингиз:",
-      myPromoCodesCopyHint: "Промокодни нусхалаш учун тугмани босинг.",
       showMorePromoCodes: "Яна кўрсатиш",
       allPromoCodesShown: "Барча промокодлар кўрсатилди.",
       productLabel: "Маҳсулот",
@@ -160,6 +170,8 @@ const resources = {
       requestOwnContact:
         "Илтимос, айнан ўзингизнинг телефон рақамингизни юборинг.",
       notRegistered: "Аввал рўйхатдан ўтишни якунланг.",
+      helpMessage:
+        "Фойдали командалар:\n/start - асосий менюни очади\n/help - ёрдам ойнасини очади\n\nАсосий менюдан промокодни активлаштириш, промокодлар рўйхатини кўриш, балансни текшириш, пул ечиш ва Созламалар -> Тилни ўзгартириш бўлимига ўтишингиз мумкин.",
       languageNames: {
         uz: "O'zbekcha",
         ru: "Русский",

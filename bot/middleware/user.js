@@ -14,6 +14,11 @@ function isStartCommand(ctx) {
   return /^\/start(?:@\w+)?(?:\s|$)/.test(text);
 }
 
+function isHelpCommand(ctx) {
+  const text = String(ctx.message?.text || "").trim();
+  return /^\/help(?:@\w+)?(?:\s|$)/.test(text);
+}
+
 async function userMiddleware(ctx, next) {
   if (!ctx.from) {
     return next();
@@ -26,7 +31,7 @@ async function userMiddleware(ctx, next) {
   ctx.state.user = user;
   ctx.state.selectedLocale = selectedLocale;
 
-  if (isStartCommand(ctx)) {
+  if (isStartCommand(ctx) || isHelpCommand(ctx)) {
     return next();
   }
 

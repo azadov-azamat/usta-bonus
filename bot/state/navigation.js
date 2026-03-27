@@ -2,6 +2,8 @@ const PAGES = {
   LANGUAGE: "language",
   CONTACT: "contact",
   MAIN_MENU: "main_menu",
+  SETTINGS: "settings",
+  SETTINGS_LANGUAGE: "settings_language",
   PROMO_INPUT: "promo_input",
   PROMO_LIST: "promo_list",
   BALANCE: "balance",

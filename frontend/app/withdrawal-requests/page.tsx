@@ -1,7 +1,11 @@
 'use client'
 
 import React from 'react'
-import { useWithdrawalRequests, useUploadWithdrawalImage } from '@/lib/hooks/useWithdrawal'
+import {
+  useWithdrawalRequests,
+  useUploadWithdrawalImage,
+  WithdrawalRequest,
+} from '@/lib/hooks/useWithdrawal'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
@@ -11,7 +15,15 @@ import { UploadZone } from '@/components/UploadZone'
 
 function WithdrawalRequestsContent() {
   const { data: requests = [], isLoading, error } = useWithdrawalRequests()
-  const [selectedRequest, setSelectedRequest] = React.useState<any>(null)
+  const [selectedRequestId, setSelectedRequestId] = React.useState<string | null>(null)
+
+  const selectedRequest = React.useMemo(
+    () =>
+      selectedRequestId
+        ? requests.find((request: WithdrawalRequest) => request.id === selectedRequestId) ?? null
+        : null,
+    [requests, selectedRequestId]
+  )
 
   const statusVariant = (status: string): 'default' | 'success' | 'warning' | 'danger' => {
     const variants: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
@@ -58,6 +70,10 @@ function WithdrawalRequestsContent() {
       render: (value: string) => new Date(value).toLocaleDateString('uz-UZ'),
     },
   ]
+
+  const openRequestDetails = React.useCallback((request: WithdrawalRequest) => {
+    setSelectedRequestId(request.id)
+  }, [])
 
   if (error) {
     return (
@@ -106,11 +122,11 @@ function WithdrawalRequestsContent() {
           columns={columns}
           loading={isLoading}
           emptyMessage="Arizalar topilmadi"
-          onRowClick={setSelectedRequest}
+          onRowClick={openRequestDetails}
           actions={[
             {
               label: "Tafsilotlar",
-              onClick: setSelectedRequest,
+              onClick: openRequestDetails,
               className: "border border-border bg-background text-foreground hover:bg-secondary",
             },
           ]}
@@ -120,7 +136,7 @@ function WithdrawalRequestsContent() {
         {selectedRequest && (
           <WithdrawalRequestDetails
             request={selectedRequest}
-            onClose={() => setSelectedRequest(null)}
+            onClose={() => setSelectedRequestId(null)}
           />
         )}
       </div>
@@ -137,7 +153,7 @@ export default function WithdrawalRequestsPage() {
 }
 
 interface WithdrawalRequestDetailsProps {
-  request: any
+  request: WithdrawalRequest
   onClose: () => void
 }
 

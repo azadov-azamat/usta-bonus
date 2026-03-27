@@ -3,8 +3,11 @@ const { getLanguageButtons, t } = require("../i18n");
 
 function getMainMenu(locale) {
   return [
-    [t(locale, "activatePromo"), t(locale, "myPromocodes")],
-    [t(locale, "myBalance"), t(locale, "withdraw")],
+    [t(locale, "activatePromo")],
+    [t(locale, "myPromocodes")],
+    [t(locale, "myBalance")],
+    [t(locale, "withdraw")],
+    [t(locale, "settings")],
   ];
 }
 
@@ -12,10 +15,21 @@ function getBackMenu(locale) {
   return [[t(locale, "back")]];
 }
 
-function getLanguageKeyboard() {
-  return Markup.keyboard(
-    getLanguageButtons().map((item) => [item.label]),
-  ).resize();
+function getSettingsMenu(locale) {
+  return [
+    [t(locale, "changeLanguage")],
+    [t(locale, "back")],
+  ];
+}
+
+function getLanguageKeyboard(locale, options = {}) {
+  const rows = getLanguageButtons().map((item) => [item.label]);
+
+  if (options.showBack && locale) {
+    rows.push([t(locale, "back")]);
+  }
+
+  return Markup.keyboard(rows).resize();
 }
 
 function getContactKeyboard(locale) {
@@ -26,6 +40,10 @@ function getContactKeyboard(locale) {
 
 function getMainMenuKeyboard(locale) {
   return Markup.keyboard(getMainMenu(locale)).resize();
+}
+
+function getSettingsKeyboard(locale) {
+  return Markup.keyboard(getSettingsMenu(locale)).resize();
 }
 
 function getBackKeyboard(locale) {
@@ -41,10 +59,19 @@ function getPromoCodeCopyButton(code, index) {
   };
 }
 
-function getPromoCodeCopyKeyboard(codes) {
-  return Markup.inlineKeyboard(
-    codes.map((code, index) => [getPromoCodeCopyButton(code.code, index)]),
-  );
+function getPromoCodeKeyboard(locale, code, index, options = {}) {
+  const rows = [[getPromoCodeCopyButton(code, index)]];
+
+  if (options.showMoreCallbackData) {
+    rows.push([
+      Markup.button.callback(
+        t(locale, "showMorePromoCodes"),
+        options.showMoreCallbackData,
+      ),
+    ]);
+  }
+
+  return Markup.inlineKeyboard(rows);
 }
 
 module.exports = {
@@ -52,5 +79,6 @@ module.exports = {
   getContactKeyboard,
   getLanguageKeyboard,
   getMainMenuKeyboard,
-  getPromoCodeCopyKeyboard,
+  getPromoCodeKeyboard,
+  getSettingsKeyboard,
 };
