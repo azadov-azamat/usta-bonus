@@ -5,8 +5,7 @@ function getMainMenu(locale) {
   return [
     [t(locale, "activatePromo")],
     [t(locale, "myPromocodes")],
-    [t(locale, "myBalance")],
-    [t(locale, "withdraw")],
+    [t(locale, "myBalance"), t(locale, "withdraw")],
     [t(locale, "settings")],
   ];
 }
@@ -23,7 +22,7 @@ function getSettingsMenu(locale) {
 }
 
 function getLanguageKeyboard(locale, options = {}) {
-  const rows = getLanguageButtons().map((item) => [item.label]);
+  const rows = [getLanguageButtons().map((item) => item.label)];
 
   if (options.showBack && locale) {
     rows.push([t(locale, "back")]);

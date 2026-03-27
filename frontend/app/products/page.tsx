@@ -10,11 +10,13 @@ import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { UploadZone } from '@/components/UploadZone'
 import { importFromExcel, exportToExcel, createExcelTemplate } from '@/lib/utils/excel'
+import { useToast } from '@/lib/hooks/useToast'
 
 function ProductsContent() {
   const { data: products = [], isLoading, error } = useProducts()
   const importMutation = useImportProducts()
   const [showImport, setShowImport] = React.useState(false)
+  const { toast } = useToast()
 
   const handleExportTemplate = () => {
     createExcelTemplate()
@@ -40,14 +42,26 @@ function ProductsContent() {
       importMutation.mutate(formData, {
         onSuccess: () => {
           setShowImport(false)
-          alert('Mahsulotlar muvaffaqiyatli import qilindi')
+          toast({
+            title: 'Import yakunlandi',
+            description: 'Mahsulotlar muvaffaqiyatli import qilindi.',
+            variant: 'success',
+          })
         },
         onError: () => {
-          alert('Importda xatolik yuz berdi')
+          toast({
+            title: 'Import bajarilmadi',
+            description: 'Import vaqtida xatolik yuz berdi.',
+            variant: 'error',
+          })
         },
       })
     } catch (error) {
-      alert('Excelni tahlil qilishda xatolik yuz berdi')
+      toast({
+        title: 'Excel o‘qilmadi',
+        description: 'Excel faylini tahlil qilishda xatolik yuz berdi.',
+        variant: 'error',
+      })
     }
   }
 

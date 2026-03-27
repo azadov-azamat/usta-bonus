@@ -91,7 +91,7 @@ async function promptForLanguage(ctx, options = {}) {
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.LANGUAGE, options);
   await ctx.reply(
-    "Tilni tanlang / Выберите язык / Тилни танланг.",
+    "🌐 Tilni tanlang / Выберите язык / Тилни танланг.",
     getLanguageKeyboard(),
   );
 }

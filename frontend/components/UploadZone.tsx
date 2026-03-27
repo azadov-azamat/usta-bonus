@@ -2,9 +2,12 @@
 
 import React from 'react'
 import { Upload, X } from 'lucide-react'
+import { useToast } from '@/lib/hooks/useToast'
 
 interface UploadZoneProps {
   onFileSelect: (file: File) => void
+  selectedFile?: File | null
+  onClear?: () => void
   accept?: string
   label?: string
   description?: string
@@ -14,6 +17,8 @@ interface UploadZoneProps {
 
 export function UploadZone({
   onFileSelect,
+  selectedFile: controlledSelectedFile,
+  onClear,
   accept = '.xlsx,.xls',
   label = 'Faylni tanlang yoki bu yerga sudring',
   description = 'Excel faylli (XLSX, XLS)',
@@ -23,6 +28,10 @@ export function UploadZone({
   const [isDragActive, setIsDragActive] = React.useState(false)
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const inputRef = React.useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
+
+  const currentFile =
+    controlledSelectedFile !== undefined ? controlledSelectedFile : selectedFile
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -50,16 +59,27 @@ export function UploadZone({
 
   const processFile = (file: File) => {
     if (file.size > maxSize) {
-      alert(`Fayl hajmi ${maxSize / 1024 / 1024}MB dan katta bo'lmasligi kerak`)
+      toast({
+        title: 'Fayl hajmi juda katta',
+        description: `Fayl hajmi ${maxSize / 1024 / 1024}MB dan katta bo'lmasligi kerak.`,
+        variant: 'error',
+      })
       return
     }
 
-    setSelectedFile(file)
+    if (controlledSelectedFile === undefined) {
+      setSelectedFile(file)
+    }
     onFileSelect(file)
   }
 
   const clearFile = () => {
-    setSelectedFile(null)
+    if (controlledSelectedFile === undefined) {
+      setSelectedFile(null)
+    }
+
+    onClear?.()
+
     if (inputRef.current) {
       inputRef.current.value = ''
     }
@@ -87,17 +107,18 @@ export function UploadZone({
       />
 
       <button
+        type="button"
         onClick={() => inputRef.current?.click()}
         disabled={loading}
         className="w-full px-6 py-8 text-center"
       >
-        {selectedFile ? (
+        {currentFile ? (
           <div className="space-y-2">
             <div className="text-foreground">
               <div className="mx-auto mb-2">✓</div>
-              <p className="font-medium">{selectedFile.name}</p>
+              <p className="font-medium">{currentFile.name}</p>
               <p className="text-sm text-muted">
-                {(selectedFile.size / 1024).toFixed(2)} KB
+                {(currentFile.size / 1024).toFixed(2)} KB
               </p>
             </div>
           </div>
@@ -110,8 +131,9 @@ export function UploadZone({
         )}
       </button>
 
-      {selectedFile && !loading && (
+      {currentFile && !loading && (
         <button
+          type="button"
           onClick={clearFile}
           className="absolute top-2 right-2 rounded transition-colors hover:bg-secondary p-1"
         >

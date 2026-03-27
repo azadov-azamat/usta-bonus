@@ -34,8 +34,8 @@ bot.catch((error) => {
 
 async function startBotRuntime() {
   await bot.telegram.setMyCommands([
-    { command: "start", description: "Botni ishga tushirish" },
-    { command: "help", description: "Yordam" },
+    { command: "start", description: "🚀 Botni ishga tushirish" },
+    { command: "help", description: "🆘 Yordam" },
   ]);
 
   if (runtimeState.started) {

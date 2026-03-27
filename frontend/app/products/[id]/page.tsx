@@ -8,20 +8,34 @@ import { usePromoCodesByProduct } from '@/lib/hooks/usePromoCodes'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import { Card } from '@/components/Card'
+import { useToast } from '@/lib/hooks/useToast'
 
 function ProductDetailsContent() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const productId = typeof params?.id === 'string' ? params.id : ''
+  const { toast } = useToast()
   const { data: product, isLoading: productLoading, error: productError } = useProduct(productId)
   const {
     data: promoCodes = [],
     error: promoError,
   } = usePromoCodesByProduct(productId)
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    alert('Kod ko\'chirib olindi')
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      toast({
+        title: 'Kod ko‘chirildi',
+        description: 'Promokod clipboardga nusxalandi.',
+        variant: 'success',
+      })
+    } catch (error) {
+      toast({
+        title: 'Nusxalab bo‘lmadi',
+        description: 'Promokodni ko‘chirishda xatolik yuz berdi.',
+        variant: 'error',
+      })
+    }
   }
 
   const getPromoStatusLabel = (status: string) => {

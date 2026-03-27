@@ -11,7 +11,10 @@ import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
 import { Badge } from '@/components/Badge'
 import { Card } from '@/components/Card'
+import { Button } from '@/components/Button'
+import { ImagePreview } from '@/components/ImagePreview'
 import { UploadZone } from '@/components/UploadZone'
+import { useToast } from '@/lib/hooks/useToast'
 
 function WithdrawalRequestsContent() {
   const { data: requests = [], isLoading, error } = useWithdrawalRequests()
@@ -163,24 +166,68 @@ function WithdrawalRequestDetails({
 }: WithdrawalRequestDetailsProps) {
   const uploadMutation = useUploadWithdrawalImage()
   const [showUpload, setShowUpload] = React.useState(false)
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+  const { toast } = useToast()
 
-  const handleImageUpload = async (file: File) => {
+  React.useEffect(() => {
+    setShowUpload(false)
+    setSelectedFile(null)
+  }, [request.id])
+
+  React.useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null)
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile)
+    setPreviewUrl(objectUrl)
+
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }, [selectedFile])
+
+  const closeUploadPanel = React.useCallback(() => {
+    setSelectedFile(null)
+    setShowUpload(false)
+  }, [])
+
+  const submitSelectedImage = React.useCallback(() => {
+    if (!selectedFile) {
+      toast({
+        title: 'Rasm tanlanmagan',
+        description: 'Avval yuboriladigan rasmni tanlang.',
+        variant: 'error',
+      })
+      return
+    }
+
     const formData = new FormData()
-    formData.append('receipt', file)
+    formData.append('receipt', selectedFile)
 
     uploadMutation.mutate(
       { id: request.id, file: formData },
       {
         onSuccess: () => {
-          alert('Rasm muvaffaqiyatli yuklandi')
-          setShowUpload(false)
+          toast({
+            title: 'Rasm yuborildi',
+            description: 'To‘lov cheki muvaffaqiyatli saqlandi.',
+            variant: 'success',
+          })
+          closeUploadPanel()
         },
         onError: () => {
-          alert('Rasm yuklashda xatolik yuz berdi')
+          toast({
+            title: 'Rasm yuborilmadi',
+            description: 'Rasm yuklashda xatolik yuz berdi.',
+            variant: 'error',
+          })
         },
       }
     )
-  }
+  }, [closeUploadPanel, request.id, selectedFile, toast, uploadMutation])
 
   return (
     <Card className="p-6">
@@ -247,13 +294,49 @@ function WithdrawalRequestDetails({
               {uploadMutation.isPending && <p className="text-sm text-muted">Yuklanmoqda...</p>}
             </div>
           ) : showUpload ? (
-            <UploadZone
-              onFileSelect={handleImageUpload}
-              accept="image/*"
-              label="Rasm faylini tanlang yoki sudring"
-              description="PNG, JPG, JPEG (max 5MB)"
-              loading={uploadMutation.isPending}
-            />
+            <div className="space-y-4">
+              <UploadZone
+                onFileSelect={setSelectedFile}
+                selectedFile={selectedFile}
+                onClear={() => setSelectedFile(null)}
+                accept="image/*"
+                label="Rasm faylini tanlang yoki sudring"
+                description="PNG, JPG, JPEG (max 5MB)"
+                loading={uploadMutation.isPending}
+              />
+
+              {previewUrl ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted">
+                    Yuborishdan oldin rasmni tekshirib oling. Xato rasm bo‘lsa o‘chirib qayta yuklashingiz mumkin.
+                  </p>
+                  <ImagePreview
+                    imageUrl={previewUrl}
+                    alt="Tanlangan rasm"
+                    onRemove={() => setSelectedFile(null)}
+                    className="max-w-sm h-96 border border-border"
+                  />
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="primary"
+                  onClick={submitSelectedImage}
+                  disabled={!selectedFile}
+                  loading={uploadMutation.isPending}
+                >
+                  Send
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={closeUploadPanel}
+                  disabled={uploadMutation.isPending}
+                >
+                  Bekor qilish
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="text-center py-8 text-muted">
               Rasm mavjud emas

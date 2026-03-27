@@ -12,12 +12,12 @@ const { PAGES, getSessionState, resetNavigation } = require("../state/navigation
 const { getUserLocale } = require("../utils/locale");
 
 const GENERIC_HELP_TEXT = [
-  "/start - botni ishga tushirish",
-  "/help - yordam",
+  "🚀 /start - botni ishga tushirish",
+  "🆘 /help - yordam",
   "",
-  "Avval tilni tanlang.",
-  "Сначала выберите язык.",
-  "Аввал тилни танланг.",
+  "🌐 Avval tilni tanlang.",
+  "🌐 Сначала выберите язык.",
+  "🌐 Аввал тилни танланг.",
 ].join("\n");
 
 async function handleHelp(ctx) {

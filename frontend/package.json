@@ -10,28 +10,29 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "next": "^15.0.0",
-    "typescript": "^5.7.2",
     "@tanstack/react-query": "^5.28.0",
-    "lucide-react": "^0.344.0",
     "axios": "^1.6.2",
-    "xlsx": "^0.18.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "tailwind-merge": "^2.2.0",
     "i18next": "^23.7.6",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^0.344.0",
+    "next": "^15.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-i18next": "^13.5.0",
-    "js-cookie": "^3.0.5"
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^2.2.0",
+    "typescript": "^5.7.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.1",
-    "postcss": "^8.4.31",
-    "autoprefixer": "^10.4.16",
+    "@types/node": "^20.10.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/node": "^20.10.5",
-    "@types/xlsx": "^0.0.36"
+    "@types/xlsx": "^0.0.36",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.1"
   }
 }
