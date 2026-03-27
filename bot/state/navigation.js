@@ -6,7 +6,7 @@ const PAGES = {
   PROMO_LIST: "promo_list",
   BALANCE: "balance",
   WITHDRAWAL_AMOUNT: "withdrawal_amount",
-  WITHDRAWAL_CARD: "withdrawal_card"
+  WITHDRAWAL_CARD: "withdrawal_card",
 };
 
 function getSessionState(ctx) {
@@ -54,5 +54,5 @@ module.exports = {
   getSessionState,
   goBack,
   resetNavigation,
-  setCurrentPage
+  setCurrentPage,
 };

@@ -53,6 +53,11 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: "uz"
       },
+      languageSelected: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
       isRegistered: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

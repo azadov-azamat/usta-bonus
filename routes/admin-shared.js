@@ -1,0 +1,177 @@
+const multer = require("multer");
+const { bot } = require("../bot");
+
+const TELEGRAM_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+const TELEGRAM_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
+
+const excelUpload = multer({
+  storage: multer.memoryStorage(),
+});
+
+const receiptUpload = multer({
+  storage: multer.memoryStorage(),
+});
+
+function isTelegramPhotoTooLargeError(error) {
+  return (
+    error &&
+    typeof error.description === "string" &&
+    error.description.includes("too big for a photo")
+  );
+}
+
+async function sendReceiptToTelegram(user, file, caption) {
+  if (file.size > TELEGRAM_DOCUMENT_MAX_BYTES) {
+    const maxSizeMb = Math.floor(TELEGRAM_DOCUMENT_MAX_BYTES / (1024 * 1024));
+    throw new Error(
+      `Chek fayli juda katta. ${maxSizeMb} MB dan kichik fayl yuklang.`,
+    );
+  }
+
+  const payload = {
+    source: file.buffer,
+    filename: file.originalname || `withdrawal-${Date.now()}`,
+  };
+
+  const shouldSendAsDocument =
+    !String(file.mimetype || "").startsWith("image/") ||
+    file.size > TELEGRAM_PHOTO_MAX_BYTES;
+
+  if (shouldSendAsDocument) {
+    return bot.telegram.sendDocument(user.chatId, payload, { caption });
+  }
+
+  try {
+    return await bot.telegram.sendPhoto(
+      user.chatId,
+      {
+        source: file.buffer,
+      },
+      {
+        caption,
+      },
+    );
+  } catch (error) {
+    if (!isTelegramPhotoTooLargeError(error)) {
+      throw error;
+    }
+
+    return bot.telegram.sendDocument(user.chatId, payload, { caption });
+  }
+}
+
+function getReceiptImageUrl(req, request) {
+  if (!request.receiptImageData && !request.receiptImagePath) {
+    return null;
+  }
+
+  return `${req.protocol}://${req.get("host")}/api/admin/withdrawals/${request.id}/receipt`;
+}
+
+function mapUser(user) {
+  const promoCodes = user.activatedPromoCodes || [];
+  const withdrawals = user.withdrawalRequests || [];
+  const withdrawnAmount = withdrawals
+    .filter((request) => request.status !== "rejected")
+    .reduce((total, request) => total + Number(request.amount), 0);
+
+  return {
+    id: user.id,
+    telegramId: user.telegramId,
+    fullName: [user.firstName, user.lastName].filter(Boolean).join(" "),
+    username: user.username,
+    phoneNumber: user.phoneNumber,
+    language: user.language,
+    balance: Number(user.balance),
+    isRegistered: user.isRegistered,
+    promoCodesCount: promoCodes.length,
+    totalEarned: promoCodes.reduce(
+      (total, code) =>
+        total + Number(code.product ? code.product.bonusAmount : 0),
+      0,
+    ),
+    totalWithdrawn: withdrawnAmount,
+    createdAt: user.createdAt,
+  };
+}
+
+function mapAdminSession(user) {
+  return {
+    id: user.id,
+    login: user.login,
+    role: user.role,
+    fullName:
+      [user.firstName, user.lastName].filter(Boolean).join(" ") || "Admin",
+  };
+}
+
+function mapProduct(product) {
+  const codes = product.promoCodes || [];
+
+  return {
+    id: product.id,
+    name: product.name,
+    quantity: product.quantity,
+    bonusAmount: Number(product.bonusAmount),
+    generatedCodesCount: codes.length,
+    activatedCodesCount: codes.filter((code) => code.status === "activated")
+      .length,
+    availableCodesCount: codes.filter((code) => code.status === "new").length,
+    createdAt: product.createdAt,
+  };
+}
+
+function mapPromoCode(code) {
+  return {
+    id: code.id,
+    code: code.code,
+    status: code.status,
+    activatedAt: code.activatedAt,
+    activatedBy: code.activatedBy
+      ? {
+          id: code.activatedBy.id,
+          telegramId: code.activatedBy.telegramId,
+          fullName: [code.activatedBy.firstName, code.activatedBy.lastName]
+            .filter(Boolean)
+            .join(" "),
+          phoneNumber: code.activatedBy.phoneNumber,
+        }
+      : null,
+  };
+}
+
+function mapWithdrawal(req, request) {
+  return {
+    id: request.id,
+    amount: Number(request.amount),
+    cardNumber: request.cardNumber,
+    status: request.status,
+    requestedAt: request.requestedAt,
+    completedAt: request.completedAt,
+    receiptImagePath: request.receiptImagePath,
+    receiptImageUrl: getReceiptImageUrl(req, request),
+    user: request.user
+      ? {
+          id: request.user.id,
+          telegramId: request.user.telegramId,
+          fullName: [request.user.firstName, request.user.lastName]
+            .filter(Boolean)
+            .join(" "),
+          phoneNumber: request.user.phoneNumber,
+          language: request.user.language,
+          chatId: request.user.chatId,
+        }
+      : null,
+  };
+}
+
+module.exports = {
+  excelUpload,
+  mapAdminSession,
+  mapProduct,
+  mapPromoCode,
+  mapUser,
+  mapWithdrawal,
+  receiptUpload,
+  sendReceiptToTelegram,
+};

@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { Download, Plus } from 'lucide-react'
 import { useProducts, useImportProducts } from '@/lib/hooks/useProducts'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -34,7 +33,7 @@ function ProductsContent() {
 
   const handleImport = async (file: File) => {
     try {
-      const excelData = await importFromExcel(file)
+      await importFromExcel(file)
       const formData = new FormData()
       formData.append('file', file)
 
@@ -150,15 +149,15 @@ function ProductsContent() {
           emptyMessage="Mahsulotlar topilmadi"
           onRowClick={(row) => {
             // Navigate to product details page
-            window.location.href = `/admin/products/${row.id}`
+            window.location.href = `/products/${row.id}`
           }}
           actions={[
             {
               label: 'Tafsilotlar',
               onClick: (row) => {
-                window.location.href = `/admin/products/${row.id}`
+                window.location.href = `/products/${row.id}`
               },
-              className: 'bg-primary/10 text-primary hover:bg-primary/20',
+              className: 'border border-border bg-background text-foreground hover:bg-secondary',
             },
           ]}
         />

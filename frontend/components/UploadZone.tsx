@@ -69,8 +69,8 @@ export function UploadZone({
     <div
       className={`relative rounded-lg border-2 border-dashed transition-colors ${
         isDragActive
-          ? 'border-primary bg-primary/5'
-          : 'border-border bg-muted/5 hover:border-primary/50'
+          ? 'border-foreground bg-secondary/70'
+          : 'border-border bg-background hover:border-foreground/30'
       }`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
@@ -93,7 +93,7 @@ export function UploadZone({
       >
         {selectedFile ? (
           <div className="space-y-2">
-            <div className="text-green-600 dark:text-green-400">
+            <div className="text-foreground">
               <div className="mx-auto mb-2">✓</div>
               <p className="font-medium">{selectedFile.name}</p>
               <p className="text-sm text-muted">
@@ -113,9 +113,9 @@ export function UploadZone({
       {selectedFile && !loading && (
         <button
           onClick={clearFile}
-          className="absolute top-2 right-2 p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors"
+          className="absolute top-2 right-2 rounded transition-colors hover:bg-secondary p-1"
         >
-          <X size={18} className="text-red-600 dark:text-red-400" />
+          <X size={18} className="text-foreground" />
         </button>
       )}
     </div>

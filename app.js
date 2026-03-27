@@ -5,7 +5,7 @@ const path = require("node:path");
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const adminRoutes = require("./routes/admin");
+const adminRoutes = require("./routes");
 const { bot, getWebhookPath, getWebhookUrl } = require("./bot");
 
 const app = express();

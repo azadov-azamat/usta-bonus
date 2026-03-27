@@ -30,10 +30,10 @@ export function AdminLayout({
       <div className="flex h-screen overflow-hidden bg-background">
         <Sidebar />
 
-        <div className="flex flex-col flex-1 w-full lg:ml-0">
+        <div className="flex min-w-0 flex-1 flex-col bg-background">
           <Header title={title} description={description} />
 
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto bg-background p-6 md:p-8">
             {children}
           </main>
         </div>

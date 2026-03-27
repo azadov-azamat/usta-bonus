@@ -19,13 +19,13 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseClasses = 'font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 justify-center'
+  const baseClasses = 'flex items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-colors duration-200'
 
   const variantClasses = {
-    primary: 'bg-primary text-white hover:bg-blue-600 disabled:bg-blue-400',
-    secondary: 'bg-secondary text-white hover:bg-purple-600 disabled:bg-purple-400',
-    danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-500',
-    ghost: 'bg-transparent text-foreground border border-border hover:bg-muted/10 disabled:opacity-50',
+    primary: 'border-foreground bg-foreground text-background hover:opacity-90 disabled:opacity-50',
+    secondary: 'border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50',
+    danger: 'border-foreground bg-foreground text-background hover:opacity-90 disabled:opacity-50',
+    ghost: 'border-border bg-secondary text-foreground hover:bg-border disabled:opacity-50',
   }
 
   const sizeClasses = {

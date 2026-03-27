@@ -75,6 +75,7 @@ async function initDatabase() {
         }
       : undefined
   );
+  await ensureUserProfileColumns();
   await ensureWithdrawalReceiptColumns();
   await ensureAdminUser();
 }
@@ -107,6 +108,38 @@ async function ensureWithdrawalReceiptColumns() {
       allowNull: true
     });
   }
+}
+
+async function ensureUserProfileColumns() {
+  const queryInterface = sequelize.getQueryInterface();
+  const table = await queryInterface.describeTable("users");
+
+  if (!table.language_selected) {
+    await queryInterface.addColumn("users", "language_selected", {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    });
+  }
+
+  await sequelize.query(`
+    UPDATE users
+    SET language_selected = TRUE
+    WHERE language_selected = FALSE
+      AND (
+        is_registered = TRUE
+        OR phone_number IS NOT NULL
+        OR language IN ('ru', 'uz-cyrl')
+      )
+  `);
+
+  await sequelize.query(`
+    UPDATE users
+    SET is_registered = TRUE
+    WHERE is_registered = FALSE
+      AND language_selected = TRUE
+      AND phone_number IS NOT NULL
+  `);
 }
 
 module.exports = {

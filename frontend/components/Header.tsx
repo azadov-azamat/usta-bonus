@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/context/AuthContext'
 import { LanguageSwitcher } from './LanguageSwitcher'
-import { Bell, Settings, User, LogOut } from 'lucide-react'
+import { User, LogOut } from 'lucide-react'
 
 interface HeaderProps {
   title: string
@@ -24,36 +24,28 @@ export function Header({ title, description }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white dark:bg-slate-950 border-b border-border sticky top-0 z-10">
-      <div className="flex items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-10 border-b border-border bg-background">
+      <div className="flex items-center justify-between px-6 py-4 md:px-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          {title ? <h1 className="text-2xl font-bold text-foreground">{title}</h1> : null}
           {description && (
             <p className="text-sm text-muted mt-1">{description}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          
-          <button className="p-2 hover:bg-muted/10 rounded-lg transition-colors">
-            <Bell size={20} className="text-muted" />
-          </button>
-          
-          <button className="p-2 hover:bg-muted/10 rounded-lg transition-colors">
-            <Settings size={20} className="text-muted" />
-          </button>
 
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="p-2 hover:bg-muted/10 rounded-lg transition-colors"
+              className="rounded-xl border border-border bg-background p-2 text-foreground transition-colors hover:bg-secondary"
             >
-              <User size={20} className="text-muted" />
+              <User size={20} />
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 top-full mt-2 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-48">
+              <div className="absolute right-0 top-full z-50 mt-2 min-w-52 overflow-hidden rounded-2xl border border-border bg-background shadow-lg">
                 <div className="px-4 py-3 border-b border-border">
                   <p className="text-sm text-muted">{t('dashboard.profile')}</p>
                   <p className="text-sm font-semibold text-foreground">
@@ -62,7 +54,7 @@ export function Header({ title, description }: HeaderProps) {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 flex items-center gap-2 hover:bg-secondary text-foreground transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-3 text-left text-foreground transition-colors hover:bg-secondary"
                 >
                   <LogOut size={16} />
                   <span className="text-sm">{t('common.logout')}</span>

@@ -32,7 +32,6 @@ export const promoCodesAPI = {
     api.get(`/api/admin/products/${productId}`).then(res => ({
       data: res.data.item?.promoCodes || []
     })),
-  getAll: () => api.get('/api/admin/products'),
 }
 
 // Withdrawal Requests API

@@ -4,27 +4,14 @@ import { promoCodesAPI } from '../api'
 export interface PromoCode {
   id: string
   code: string
-  status?: string
+  status: string
   activatedAt?: string
-  activatedBy?: any
-}
-
-export function usePromoCodes() {
-  return useQuery({
-    queryKey: ['promo-codes'],
-    queryFn: async () => {
-      const response = await promoCodesAPI.getAll()
-      const data = response.data
-      const items = data.items || data.data || []
-      return items.map((code: any) => ({
-        id: code.id,
-        code: code.code,
-        status: code.status,
-        activatedAt: code.activatedAt,
-        activatedBy: code.activatedBy,
-      }))
-    },
-  })
+  activatedBy?: {
+    id: string
+    telegramId?: string
+    fullName?: string
+    phoneNumber?: string
+  } | null
 }
 
 export function usePromoCodesByProduct(productId: string) {
@@ -36,10 +23,9 @@ export function usePromoCodesByProduct(productId: string) {
       return codes.map((code: any) => ({
         id: code.id,
         code: code.code,
-        status: code.status,
-        discount: code.discount,
+        status: code.status || 'new',
         activatedAt: code.activatedAt,
-        activatedBy: code.activatedBy,
+        activatedBy: code.activatedBy || null,
       }))
     },
     enabled: !!productId,

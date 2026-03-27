@@ -18,7 +18,9 @@ function DashboardContent() {
 
   const totalUsers = users.length
   const totalProducts = products.length
-  const pendingWithdrawals = withdrawals.filter((w) => w.status === 'pending').length
+  const pendingWithdrawals = withdrawals.filter(
+    (w: any) => w.status === "pending",
+  ).length;
   const totalBalance = users.reduce((sum, user) => sum + (user.balance || 0), 0)
 
   const stats = [
@@ -26,39 +28,39 @@ function DashboardContent() {
       title: t('dashboard.users'),
       value: totalUsers,
       icon: Users,
-      color: 'bg-blue-500/10 text-blue-500',
+      color: 'border border-border bg-secondary text-foreground',
       loading: usersLoading,
     },
     {
       title: t('dashboard.products'),
       value: totalProducts,
       icon: Package,
-      color: 'bg-purple-500/10 text-purple-500',
+      color: 'border border-border bg-secondary text-foreground',
       loading: productsLoading,
     },
     {
       title: t('withdrawals.pending'),
       value: pendingWithdrawals,
       icon: DollarSign,
-      color: 'bg-orange-500/10 text-orange-500',
+      color: 'border border-border bg-secondary text-foreground',
       loading: withdrawalsLoading,
     },
     {
       title: t('users.balance'),
       value: `${(totalBalance / 1000000).toFixed(1)}M`,
       icon: TrendingUp,
-      color: 'bg-green-500/10 text-green-500',
+      color: 'border border-border bg-secondary text-foreground',
       loading: usersLoading,
     },
   ]
 
   return (
-    <AdminLayout>
+    <AdminLayout title="">
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl font-bold text-foreground">
-            {t('dashboard.welcome')} 👋
+            {t('dashboard.welcome')}
           </h1>
           <p className="text-muted">
             {t('dashboard.overview')} • {new Date().toLocaleDateString()}
@@ -95,7 +97,7 @@ function DashboardContent() {
 
         {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+          <Card className="p-6">
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-bold text-foreground">
                 {t('dashboard.users')}
@@ -105,14 +107,14 @@ function DashboardContent() {
               </p>
               <a
                 href="/users"
-                className="inline-block text-sm font-semibold text-blue-500 hover:text-blue-600 transition-colors"
+                className="inline-block text-sm font-semibold text-foreground transition-colors hover:text-muted"
               >
                 View all →
               </a>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+          <Card className="p-6">
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-bold text-foreground">
                 {t('dashboard.products')}
@@ -122,14 +124,14 @@ function DashboardContent() {
               </p>
               <a
                 href="/products"
-                className="inline-block text-sm font-semibold text-purple-500 hover:text-purple-600 transition-colors"
+                className="inline-block text-sm font-semibold text-foreground transition-colors hover:text-muted"
               >
                 Manage products →
               </a>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
+          <Card className="p-6">
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-bold text-foreground">
                 {t('withdrawals.title')}
@@ -139,19 +141,19 @@ function DashboardContent() {
               </p>
               <a
                 href="/withdrawal-requests"
-                className="inline-block text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+                className="inline-block text-sm font-semibold text-foreground transition-colors hover:text-muted"
               >
                 Review requests →
               </a>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+          <Card className="p-6">
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-bold text-foreground">System Status</h3>
               <p className="text-sm text-muted">All systems operational</p>
-              <div className="inline-flex items-center gap-2 text-sm font-semibold text-green-500">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+                <div className="h-2 w-2 rounded-full bg-foreground" />
                 Online
               </div>
             </div>

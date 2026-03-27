@@ -38,22 +38,22 @@ export function Sidebar() {
       {/* Mobile Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-40 lg:hidden p-2 rounded-lg bg-primary text-white"
+        className="fixed left-4 top-4 z-40 rounded-xl border border-border bg-background p-2 text-foreground shadow-sm lg:hidden"
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-foreground text-background transform transition-transform duration-300 z-30 lg:relative lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-30 h-screen w-64 transform border-r border-border bg-background text-foreground transition-transform duration-300 lg:relative lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full p-6">
+        <div className="flex h-full flex-col p-6">
           {/* Logo */}
-          <div className="mb-8 mt-12 lg:mt-0">
+          <div className="mb-10 mt-12 border-b border-border pb-6 lg:mt-0">
             <h1 className="text-2xl font-bold">Usta Bonus</h1>
-            <p className="text-sm opacity-75">Admin Panel</p>
+            <p className="mt-1 text-sm text-muted">Admin Panel</p>
           </div>
 
           {/* Navigation */}
@@ -67,10 +67,10 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors ${
                     isActive
-                      ? 'bg-primary text-white'
-                      : 'text-background/80 hover:bg-background/10'
+                      ? 'bg-foreground text-background'
+                      : 'text-foreground/70 hover:bg-secondary hover:text-foreground'
                   }`}
                 >
                   <Icon size={20} />
@@ -83,7 +83,7 @@ export function Sidebar() {
           {/* Footer */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-background/80 hover:bg-background/10 transition-colors w-full text-left"
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
           >
             <LogOut size={20} />
             <span className="font-medium">{t('common.logout')}</span>

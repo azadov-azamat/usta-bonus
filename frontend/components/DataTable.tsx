@@ -77,7 +77,7 @@ export function DataTable<T extends { id: string }>({
     <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-border bg-muted/10">
+          <tr className="border-b border-border bg-secondary/70">
             {columns.map((column) => (
               <th
                 key={String(column.key)}
@@ -85,13 +85,13 @@ export function DataTable<T extends { id: string }>({
                 style={{ width: column.width }}
               >
                 <button
-                  className="flex items-center gap-2 hover:text-primary transition-colors"
+                  className="flex items-center gap-2 transition-colors hover:text-foreground"
                   onClick={() => column.sortable && handleSort(column.key)}
                   disabled={!column.sortable}
                 >
                   {column.label}
                   {column.sortable && sortKey === column.key && (
-                    <span className="text-primary">
+                    <span className="text-foreground">
                       {sortOrder === 'asc' ? (
                         <ChevronUp size={16} />
                       ) : (
@@ -110,10 +110,10 @@ export function DataTable<T extends { id: string }>({
           </tr>
         </thead>
         <tbody>
-          {sortedData.map((row, idx) => (
+          {sortedData.map((row) => (
             <tr
               key={row.id}
-              className="border-b border-border hover:bg-muted/5 transition-colors cursor-pointer"
+              className="cursor-pointer border-b border-border transition-colors hover:bg-secondary/40"
               onClick={() => onRowClick?.(row)}
             >
               {columns.map((column) => (
@@ -138,7 +138,7 @@ export function DataTable<T extends { id: string }>({
                         onClick={() => action.onClick(row)}
                         className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                           action.className ||
-                          'bg-primary/10 text-primary hover:bg-primary/20'
+                          'border border-border bg-background text-foreground hover:bg-secondary'
                         }`}
                       >
                         {action.label}

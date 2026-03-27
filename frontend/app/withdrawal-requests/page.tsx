@@ -16,7 +16,7 @@ function WithdrawalRequestsContent() {
   const statusVariant = (status: string): 'default' | 'success' | 'warning' | 'danger' => {
     const variants: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
       pending: 'warning',
-      approved: 'success',
+      completed: 'success',
       rejected: 'danger',
     }
     return variants[status] || 'default'
@@ -25,7 +25,7 @@ function WithdrawalRequestsContent() {
   const statusLabel = (status: string) => {
     const labels: Record<string, string> = {
       pending: 'Kutilayotgan',
-      approved: 'Tasdiqlangan',
+      completed: 'Tasdiqlangan',
       rejected: 'Rad etilgan',
     }
     return labels[status] || status
@@ -53,7 +53,7 @@ function WithdrawalRequestsContent() {
       ),
     },
     {
-      key: 'createdAt' as const,
+      key: 'requestedAt' as const,
       label: 'Yaratilgan',
       render: (value: string) => new Date(value).toLocaleDateString('uz-UZ'),
     },
@@ -82,18 +82,20 @@ function WithdrawalRequestsContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-4">
             <p className="text-muted text-sm font-medium">Jami Arizalar</p>
-            <p className="text-2xl font-bold text-foreground mt-2">{requests.length}</p>
+            <p className="text-2xl font-bold text-foreground mt-2">
+              {requests.length}
+            </p>
           </Card>
           <Card className="p-4">
             <p className="text-muted text-sm font-medium">Kutilayotgan</p>
-            <p className="text-2xl font-bold text-yellow-600 mt-2">
-              {requests.filter((r) => r.status === 'pending').length}
+            <p className="text-2xl font-bold text-foreground mt-2">
+              {requests.filter((r: any) => r.status === "pending").length}
             </p>
           </Card>
           <Card className="p-4">
             <p className="text-muted text-sm font-medium">Tasdiqlangan</p>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {requests.filter((r) => r.status === 'approved').length}
+            <p className="text-2xl font-bold text-foreground mt-2">
+              {requests.filter((r: any) => r.status === "completed").length}
             </p>
           </Card>
         </div>
@@ -107,9 +109,9 @@ function WithdrawalRequestsContent() {
           onRowClick={setSelectedRequest}
           actions={[
             {
-              label: 'Tafsilotlar',
+              label: "Tafsilotlar",
               onClick: setSelectedRequest,
-              className: 'bg-primary/10 text-primary hover:bg-primary/20',
+              className: "border border-border bg-background text-foreground hover:bg-secondary",
             },
           ]}
         />
@@ -123,7 +125,7 @@ function WithdrawalRequestsContent() {
         )}
       </div>
     </AdminLayout>
-  )
+  );
 }
 
 export default function WithdrawalRequestsPage() {
@@ -209,10 +211,10 @@ function WithdrawalRequestDetails({
         <div className="border-t border-border pt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-foreground">Rasm</h3>
-            {!request.receiptImageUrl && !showUpload && (
+            {request.status === 'pending' && !request.receiptImageUrl && !showUpload && (
               <button
                 onClick={() => setShowUpload(true)}
-                className="text-sm text-primary hover:text-blue-600 transition-colors"
+                className="text-sm text-foreground transition-colors hover:text-muted"
               >
                 Rasm Yuklash
               </button>

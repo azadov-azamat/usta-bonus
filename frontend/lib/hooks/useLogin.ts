@@ -2,15 +2,15 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
 export function useLogin() {
-  const { login } = useAuth()
+  const { login: loginUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (login: string, password: string) => {
+  const handleLogin = async (loginValue: string, password: string) => {
     try {
       setIsLoading(true)
       setError(null)
-      await login(login, password)
+      await loginUser(loginValue, password)
       return true
     } catch (err: any) {
       const errorMsg = err.message || 'Login failed'

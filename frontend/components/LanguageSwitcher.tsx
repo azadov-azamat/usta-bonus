@@ -24,22 +24,22 @@ export function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background hover:bg-secondary text-foreground transition-colors border border-border"
+        className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-foreground transition-colors hover:bg-secondary"
       >
         <Globe className="w-4 h-4" />
         <span className="text-sm font-medium">{currentLang.flag}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-background shadow-lg">
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
               className={`w-full text-left px-4 py-3 flex items-center gap-2 transition-colors ${
                 i18n.language === lang.code
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-secondary text-foreground'
+                  ? 'bg-foreground text-background'
+                  : 'text-foreground hover:bg-secondary'
               }`}
             >
               <span>{lang.flag}</span>

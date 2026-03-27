@@ -4,19 +4,10 @@ import React from 'react'
 import { useUsers } from '@/lib/hooks/useUsers'
 import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
-import { Badge } from '@/components/Badge'
+import { ProtectedRoute } from "@/components/ProtectedRoute"
 
 function UsersContent() {
   const { data: users = [], isLoading, error } = useUsers()
-
-  const statusVariant = (status: string): 'default' | 'success' | 'warning' | 'danger' => {
-    const variants: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
-      active: 'success',
-      inactive: 'warning',
-      blocked: 'danger',
-    }
-    return variants[status] || 'default'
-  }
 
   const columns = [
     {
@@ -57,7 +48,7 @@ function UsersContent() {
   }
 
   return (
-    <AdminLayout>
+    <AdminLayout title="">
       <div className="space-y-6">
       
         <div className="flex items-center justify-between">
@@ -75,12 +66,12 @@ function UsersContent() {
             {
               label: 'Ko\'rish',
               onClick: (row) => console.log('View user:', row),
-              className: 'bg-primary/10 text-primary hover:bg-primary/20',
+              className: 'border border-border bg-background text-foreground hover:bg-secondary',
             },
             {
               label: 'Tahrirlash',
               onClick: (row) => console.log('Edit user:', row),
-              className: 'bg-secondary/10 text-secondary hover:bg-secondary/20',
+              className: 'border border-border bg-background text-foreground hover:bg-secondary',
             },
           ]}
         />

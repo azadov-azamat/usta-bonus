@@ -8,19 +8,19 @@ export default function AdminDashboard() {
       label: 'Foydalanuvchilar',
       value: '1,234',
       icon: Users,
-      color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+      color: 'border border-border bg-secondary text-foreground',
     },
     {
       label: 'Mahsulotlar',
       value: '56',
       icon: Package,
-      color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+      color: 'border border-border bg-secondary text-foreground',
     },
     {
       label: 'Kutilayotgan Arizalar',
       value: '12',
       icon: FileText,
-      color: 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
+      color: 'border border-border bg-secondary text-foreground',
     },
   ]
 

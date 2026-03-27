@@ -1,33 +1,36 @@
 'use client'
 
 import React from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Copy } from 'lucide-react'
 import { useProduct } from '@/lib/hooks/useProducts'
 import { usePromoCodesByProduct } from '@/lib/hooks/usePromoCodes'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import { Card } from '@/components/Card'
-import { DataTable } from '@/components/DataTable'
-import { Badge } from '@/components/Badge'
-import { Button } from '@/components/Button'
 
-function ProductDetailsContent({
-  params,
-}: {
-  params: { id: string }
-}) {
+function ProductDetailsContent() {
   const router = useRouter()
-  const { data: product, isLoading: productLoading, error: productError } = useProduct(params.id)
+  const params = useParams<{ id: string }>()
+  const productId = typeof params?.id === 'string' ? params.id : ''
+  const { data: product, isLoading: productLoading, error: productError } = useProduct(productId)
   const {
     data: promoCodes = [],
-    isLoading: promoLoading,
     error: promoError,
-  } = usePromoCodesByProduct(params.id)
+  } = usePromoCodesByProduct(productId)
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)
     alert('Kod ko\'chirib olindi')
+  }
+
+  const getPromoStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      new: 'Yangi',
+      activated: 'Faollashtirilgan',
+    }
+
+    return labels[status] || status
   }
 
   if (productError || promoError) {
@@ -56,24 +59,6 @@ function ProductDetailsContent({
     )
   }
 
-  const columns = [
-    {
-      key: 'code' as const,
-      label: 'Promokod',
-      sortable: true,
-    },
-    {
-      key: 'discount' as const,
-      label: 'Chegirma',
-      render: (value: number) => `${value}%`,
-    },
-    {
-      key: 'createdAt' as const,
-      label: 'Yaratilgan',
-      render: (value: string) => new Date(value).toLocaleDateString('uz-UZ'),
-    },
-  ]
-
   return (
     <AdminLayout
       title="Mahsulot Tafsilotlari"
@@ -83,7 +68,7 @@ function ProductDetailsContent({
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-primary hover:text-blue-600 transition-colors mb-4"
+          className="mb-4 flex items-center gap-2 text-foreground transition-colors hover:text-muted"
         >
           <ArrowLeft size={20} />
           <span className="font-medium">Orqaga</span>
@@ -141,23 +126,33 @@ function ProductDetailsContent({
             </div>
           ) : (
             <div className="space-y-2">
-              {promoCodes.map((promo) => (
+              {promoCodes.map((promo: any) => (
                 <div
                   key={promo.id}
-                  className="flex items-center justify-between p-4 bg-muted/5 rounded-lg border border-border hover:border-primary/50 transition-colors"
+                  className="flex items-center justify-between rounded-lg border border-border bg-background p-4 transition-colors hover:bg-secondary/40"
                 >
                   <div className="space-y-1">
                     <p className="font-mono font-bold text-foreground">
                       {promo.code}
                     </p>
                     <p className="text-sm text-muted">
-                      Chegirma: {promo.discount}%
+                      Holati: {getPromoStatusLabel(promo.status)}
                     </p>
+                    {promo.activatedAt && (
+                      <p className="text-sm text-muted">
+                        Faollashgan: {new Date(promo.activatedAt).toLocaleDateString('uz-UZ')}
+                      </p>
+                    )}
+                    {promo.activatedBy?.fullName && (
+                      <p className="text-sm text-muted">
+                        Foydalanuvchi: {promo.activatedBy.fullName}
+                      </p>
+                    )}
                   </div>
 
                   <button
                     onClick={() => handleCopyCode(promo.code)}
-                    className="p-2 hover:bg-primary/10 rounded transition-colors text-primary"
+                    className="rounded p-2 text-foreground transition-colors hover:bg-secondary"
                     title="Kopyalash"
                   >
                     <Copy size={20} />
@@ -172,14 +167,10 @@ function ProductDetailsContent({
   )
 }
 
-export default function ProductDetailsPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default function ProductDetailsPage() {
   return (
     <ProtectedRoute>
-      <ProductDetailsContent params={params} />
+      <ProductDetailsContent />
     </ProtectedRoute>
   )
 }

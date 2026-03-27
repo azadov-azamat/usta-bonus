@@ -26,13 +26,17 @@ function mapAuthUser(payload: unknown): AuthUser | null {
   }
 
   const item = payload as Record<string, unknown>
+  const userId =
+    typeof item.id === 'string' || typeof item.id === 'number'
+      ? String(item.id)
+      : null
 
-  if (typeof item.id !== 'string' || typeof item.login !== 'string') {
+  if (!userId || typeof item.login !== 'string') {
     return null
   }
 
   return {
-    id: item.id,
+    id: userId,
     login: item.login,
     fullName: typeof item.fullName === 'string' ? item.fullName : 'Admin',
     role: typeof item.role === 'string' ? item.role : undefined,
