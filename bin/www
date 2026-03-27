@@ -1,0 +1,90 @@
+#!/usr/bin/env node
+require("dotenv").config();
+
+const http = require("node:http");
+const app = require("../app");
+const { initDatabase, sequelize } = require("../models");
+const { startBotRuntime, stopBotRuntime } = require("../bot");
+
+const port = Number(process.env.PORT || 3000);
+let server;
+
+function onError(error) {
+  if (error.syscall !== "listen") {
+    throw error;
+  }
+
+  switch (error.code) {
+    case "EACCES":
+      console.error(`Port ${port} uchun ruxsat yetarli emas.`);
+      process.exit(1);
+      break;
+    case "EADDRINUSE":
+      console.error(`Port ${port} band.`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+async function shutdown(reason) {
+  console.log(`Server to'xtatilmoqda: ${reason}`);
+
+  try {
+    await stopBotRuntime(reason);
+
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve();
+        });
+      });
+    }
+
+    await sequelize.close();
+    process.exit(0);
+  } catch (error) {
+    console.error("To'xtatishda xatolik:", error);
+    process.exit(1);
+  }
+}
+
+async function bootstrap() {
+  await initDatabase();
+
+  server = http.createServer(app);
+  server.on("error", onError);
+
+  await new Promise((resolve) => {
+    server.listen(port, () => {
+      console.log(`HTTP server ishga tushdi: http://localhost:${port}`);
+      resolve();
+    });
+  });
+
+  await startBotRuntime();
+}
+
+bootstrap().catch(async (error) => {
+  console.error("Loyihani ishga tushirib bo'lmadi:", error);
+
+  try {
+    await sequelize.close();
+  } catch {}
+
+  process.exit(1);
+});
+
+process.on("SIGINT", () => {
+  void shutdown("SIGINT");
+});
+
+process.on("SIGTERM", () => {
+  void shutdown("SIGTERM");
+});
