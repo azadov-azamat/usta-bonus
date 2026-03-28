@@ -48,8 +48,12 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true
       },
+      withdrawalCardNumber: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       language: {
-        type: DataTypes.ENUM("uz", "ru", "uz-cyrl"),
+        type: DataTypes.ENUM("uz", "ru"),
         allowNull: false,
         defaultValue: "uz"
       },

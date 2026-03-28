@@ -1,6 +1,7 @@
 const { Markup } = require("telegraf");
 const { User } = require("../../models");
 const { formatMoney } = require("../utils/formatters");
+const { formatCardNumber } = require("../utils/card-number");
 
 function joinUrl(baseUrl, pathname) {
   const normalizedBase = String(baseUrl || "").trim();
@@ -99,7 +100,11 @@ function getAdminWithdrawalMessage(user, withdrawalRequest) {
     lines.push(`🔗 Username: @${username}`);
   }
 
-  lines.push(`💳 Karta: ${withdrawalRequest.cardNumber}`);
+  lines.push(
+    `💳 Karta: ${
+      formatCardNumber(withdrawalRequest.cardNumber) || withdrawalRequest.cardNumber
+    }`,
+  );
   lines.push(`💰 Summa: ${formatMoney("uz", withdrawalRequest.amount)} so'm`);
   lines.push(`🕒 Vaqt: ${requestedAt}`);
 

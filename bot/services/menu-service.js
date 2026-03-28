@@ -1,6 +1,7 @@
 const { t } = require("../i18n");
 const {
   getBackKeyboard,
+  getCardConfirmationInlineKeyboard,
   getContactKeyboard,
   getLanguageKeyboard,
   getMainMenuKeyboard,
@@ -16,6 +17,7 @@ const {
   setCurrentPage,
 } = require("../state/navigation");
 const { formatMoney, formatMoneyWithUnit } = require("../utils/formatters");
+const { formatCardNumber } = require("../utils/card-number");
 const { getUserLocale } = require("../utils/locale");
 const { listUserPromoCodesPage } = require("./promo-service");
 const { hasPhoneNumber, setUserLanguage } = require("./user-service");
@@ -270,6 +272,9 @@ async function askWithdrawalAmount(ctx, user, options = {}) {
   const sessionState = getSessionState(ctx);
   const locale = getUserLocale(user);
   sessionState.step = "awaiting_withdrawal_amount";
+  sessionState.withdrawalAmount = null;
+  sessionState.pendingWithdrawalCard = null;
+  sessionState.cardFlowType = null;
   setCurrentPage(sessionState, PAGES.WITHDRAWAL_AMOUNT, options);
   await ctx.reply(
     t(locale, "enterWithdrawalAmount", {
@@ -282,8 +287,10 @@ async function askWithdrawalAmount(ctx, user, options = {}) {
 async function askWithdrawalCard(ctx, user, amount, options = {}) {
   const sessionState = getSessionState(ctx);
   const locale = getUserLocale(user);
-  sessionState.step = "awaiting_withdrawal_card";
+  sessionState.step = "awaiting_card_input";
   sessionState.withdrawalAmount = amount;
+  sessionState.pendingWithdrawalCard = null;
+  sessionState.cardFlowType = "withdrawal";
   setCurrentPage(sessionState, PAGES.WITHDRAWAL_CARD, options);
   await ctx.reply(
     t(locale, "enterCardNumber"),
@@ -291,7 +298,38 @@ async function askWithdrawalCard(ctx, user, amount, options = {}) {
   );
 }
 
+async function askSettingsCard(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  sessionState.step = "awaiting_card_input";
+  sessionState.withdrawalAmount = null;
+  sessionState.pendingWithdrawalCard = null;
+  sessionState.cardFlowType = "settings";
+  setCurrentPage(sessionState, PAGES.SETTINGS_CARD, options);
+  await ctx.reply(
+    t(locale, "enterNewCardNumber"),
+    getBackKeyboard(locale),
+  );
+}
+
+async function confirmCardEntry(ctx, user, flowType, cardNumber, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  sessionState.step = "awaiting_card_confirmation";
+  sessionState.pendingWithdrawalCard = cardNumber;
+  sessionState.cardFlowType = flowType;
+  setCurrentPage(sessionState, PAGES.CARD_CONFIRM, options);
+  await ctx.reply(
+    t(locale, "confirmCardNumber", {
+      cardNumber: formatCardNumber(cardNumber),
+    }),
+    getCardConfirmationInlineKeyboard(locale, flowType, cardNumber),
+  );
+}
+
 async function renderPage(ctx, user, page, options = {}) {
+  const sessionState = getSessionState(ctx);
+
   switch (page) {
     case PAGES.LANGUAGE:
       await promptForLanguage(ctx, options);
@@ -321,7 +359,47 @@ async function renderPage(ctx, user, page, options = {}) {
       await askWithdrawalCard(
         ctx,
         user,
-        getSessionState(ctx).withdrawalAmount || 0,
+        sessionState.withdrawalAmount || 0,
+        options,
+      );
+      break;
+    case PAGES.SETTINGS_CARD:
+      await askSettingsCard(ctx, user, options);
+      break;
+    case PAGES.CARD_CONFIRM:
+      if (!sessionState.pendingWithdrawalCard) {
+        if (sessionState.cardFlowType === "settings") {
+          await askSettingsCard(ctx, user, options);
+          break;
+        }
+
+        await askWithdrawalCard(
+          ctx,
+          user,
+          sessionState.withdrawalAmount || 0,
+          options,
+        );
+        break;
+      }
+
+      if (
+        sessionState.cardFlowType !== "settings" &&
+        !sessionState.withdrawalAmount
+      ) {
+        await askWithdrawalCard(
+          ctx,
+          user,
+          sessionState.withdrawalAmount || 0,
+          options,
+        );
+        break;
+      }
+
+      await confirmCardEntry(
+        ctx,
+        user,
+        sessionState.cardFlowType || "withdrawal",
+        sessionState.pendingWithdrawalCard,
         options,
       );
       break;
@@ -335,8 +413,10 @@ async function renderPage(ctx, user, page, options = {}) {
 module.exports = {
   applyLanguageSelection,
   askPromoCode,
+  askSettingsCard,
   askWithdrawalAmount,
   askWithdrawalCard,
+  confirmCardEntry,
   listMyPromoCodes,
   promptForLanguage,
   promptForPhone,

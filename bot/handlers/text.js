@@ -8,8 +8,10 @@ const { activatePromoCode } = require("../services/promo-service");
 const {
   applyLanguageSelection,
   askPromoCode,
+  askSettingsCard,
   askWithdrawalAmount,
   askWithdrawalCard,
+  confirmCardEntry,
   listMyPromoCodes,
   promptForLanguage,
   promptForPhone,
@@ -19,7 +21,9 @@ const {
   showSettingsMenu,
 } = require("../services/menu-service");
 const {
+  getSavedWithdrawalCard,
   hasPhoneNumber,
+  hasSavedWithdrawalCard,
   hasSelectedLanguage,
 } = require("../services/user-service");
 const {
@@ -34,6 +38,10 @@ const {
   resetNavigation,
 } = require("../state/navigation");
 const { formatMoney } = require("../utils/formatters");
+const {
+  isValidCardNumber,
+  normalizeCardNumber,
+} = require("../utils/card-number");
 const { getUserLocale } = require("../utils/locale");
 const { looksLikePromoCode } = require("../utils/promo-code");
 
@@ -62,6 +70,30 @@ async function replyPromoActivationResult(ctx, user, result) {
     }),
     getMainMenuKeyboard(locale),
   );
+}
+
+async function finalizeWithdrawalRequest(ctx, user, amount, cardNumber) {
+  const locale = getUserLocale(user);
+  const sessionState = getSessionState(ctx);
+
+  resetNavigation(sessionState, PAGES.MAIN_MENU);
+
+  const withdrawalRequest = await createWithdrawalRequest(user, cardNumber, amount);
+
+  await ctx.reply(
+    t(locale, "withdrawalCreated"),
+    getMainMenuKeyboard(locale),
+  );
+
+  try {
+    await notifyAdminsAboutWithdrawalRequest(
+      ctx.telegram,
+      user,
+      withdrawalRequest,
+    );
+  } catch (error) {
+    console.error("Adminlarga withdrawal notification yuborilmadi:", error);
+  }
 }
 
 function canHandleLanguageSelection(sessionState, user) {
@@ -98,6 +130,21 @@ async function handleText(ctx) {
   }
 
   const locale = getUserLocale(user);
+
+  if (
+    text === t(locale, "back") &&
+    sessionState.step === "awaiting_card_confirmation"
+  ) {
+    const previousPage = goBack(
+      sessionState,
+      sessionState.cardFlowType === "settings"
+        ? PAGES.SETTINGS_CARD
+        : PAGES.WITHDRAWAL_CARD,
+    );
+    sessionState.pendingWithdrawalCard = null;
+    await renderPage(ctx, user, previousPage, { replace: true });
+    return;
+  }
 
   if (text === t(locale, "back")) {
     clearFlowState(sessionState);
@@ -153,6 +200,11 @@ async function handleText(ctx) {
     return;
   }
 
+  if (text === t(locale, "changeCardNumber")) {
+    await askSettingsCard(ctx, user);
+    return;
+  }
+
   if (sessionState.step === "awaiting_promo_code") {
     resetNavigation(sessionState, PAGES.MAIN_MENU);
     const result = await activatePromoCode(user, text);
@@ -188,15 +240,26 @@ async function handleText(ctx) {
       return;
     }
 
+    if (hasSavedWithdrawalCard(user)) {
+      await finalizeWithdrawalRequest(
+        ctx,
+        user,
+        amount,
+        getSavedWithdrawalCard(user),
+      );
+      return;
+    }
+
     await askWithdrawalCard(ctx, user, amount);
     return;
   }
 
-  if (sessionState.step === "awaiting_withdrawal_card") {
+  if (sessionState.step === "awaiting_card_input") {
+    const cardNumber = normalizeCardNumber(text);
+    const isSettingsFlow = sessionState.cardFlowType === "settings";
     const amount = Number(sessionState.withdrawalAmount || 0);
-    const cardNumber = text.replace(/\s+/g, " ").trim();
 
-    if (!amount || !cardNumber) {
+    if (!isSettingsFlow && !amount) {
       await ctx.reply(
         t(locale, "invalidWithdrawalAmount"),
         getBackKeyboard(locale),
@@ -204,27 +267,42 @@ async function handleText(ctx) {
       return;
     }
 
-    resetNavigation(sessionState, PAGES.MAIN_MENU);
-    const withdrawalRequest = await createWithdrawalRequest(
+    if (!isValidCardNumber(cardNumber)) {
+      await ctx.reply(
+        t(locale, "invalidCardNumber"),
+        getBackKeyboard(locale),
+      );
+      return;
+    }
+
+    await confirmCardEntry(
+      ctx,
       user,
+      isSettingsFlow ? "settings" : "withdrawal",
       cardNumber,
-      amount,
     );
+    return;
+  }
+
+  if (sessionState.step === "awaiting_card_confirmation") {
+    const isSettingsFlow = sessionState.cardFlowType === "settings";
+    const cardNumber = normalizeCardNumber(text);
+
+    if (isValidCardNumber(cardNumber)) {
+      await confirmCardEntry(
+        ctx,
+        user,
+        isSettingsFlow ? "settings" : "withdrawal",
+        cardNumber,
+        { replace: true },
+      );
+      return;
+    }
 
     await ctx.reply(
-      t(locale, "withdrawalCreated"),
-      getMainMenuKeyboard(locale),
+      t(locale, "invalidCardNumber"),
+      getBackKeyboard(locale),
     );
-
-    try {
-      await notifyAdminsAboutWithdrawalRequest(
-        ctx.telegram,
-        user,
-        withdrawalRequest,
-      );
-    } catch (error) {
-      console.error("Adminlarga withdrawal notification yuborilmadi:", error);
-    }
     return;
   }
 

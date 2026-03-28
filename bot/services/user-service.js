@@ -1,4 +1,8 @@
 const { User } = require("../../models");
+const {
+  isValidCardNumber,
+  normalizeCardNumber,
+} = require("../utils/card-number");
 const { isKnownLocale, normalizeLocale } = require("../utils/locale");
 
 function hasSelectedLanguage(user) {
@@ -7,6 +11,15 @@ function hasSelectedLanguage(user) {
 
 function hasPhoneNumber(user) {
   return Boolean(String(user?.phoneNumber || "").trim());
+}
+
+function getSavedWithdrawalCard(user) {
+  const normalizedCardNumber = normalizeCardNumber(user?.withdrawalCardNumber);
+  return isValidCardNumber(normalizedCardNumber) ? normalizedCardNumber : null;
+}
+
+function hasSavedWithdrawalCard(user) {
+  return Boolean(getSavedWithdrawalCard(user));
 }
 
 function syncRegistrationStatus(user) {
@@ -57,11 +70,26 @@ async function setUserPhoneNumber(user, phoneNumber) {
   return user;
 }
 
+async function setUserWithdrawalCard(user, cardNumber) {
+  const normalizedCardNumber = normalizeCardNumber(cardNumber);
+
+  if (!isValidCardNumber(normalizedCardNumber)) {
+    throw new Error("Karta raqami noto'g'ri.");
+  }
+
+  user.withdrawalCardNumber = normalizedCardNumber;
+  await user.save();
+  return user;
+}
+
 module.exports = {
   ensureTelegramUser,
+  getSavedWithdrawalCard,
   hasPhoneNumber,
+  hasSavedWithdrawalCard,
   hasSelectedLanguage,
   setUserLanguage,
   setUserPhoneNumber,
+  setUserWithdrawalCard,
   syncRegistrationStatus,
 };

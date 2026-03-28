@@ -24,6 +24,7 @@ const resources = {
       settings: "⚙️ Sozlamalar",
       settingsHint: "⚙️ Sozlamalar bo'limidan kerakli amalni tanlang.",
       changeLanguage: "🌐 Tilni o'zgartirish",
+      changeCardNumber: "💳 Karta raqamini o'zgartirish",
       back: "⬅️ Orqaga",
       cancel: "❌ Bekor qilish",
       enterPromoCode: "🎟️ Promokodni yuboring.",
@@ -48,6 +49,14 @@ const resources = {
         "⚠️ Kiritilgan summa balansingizdan katta. Joriy balans: {{amount}} so'm",
       enterCardNumber:
         "💳 Karta raqamingizni yuboring. Masalan: 8600 1234 5678 9012",
+      invalidCardNumber:
+        "⚠️ Karta raqamini 16 xonali formatda kiriting.",
+      confirmCardNumber:
+        "💳 Karta raqami: {{cardNumber}}\n\n✅ Agar raqam to'g'ri bo'lsa, tasdiqlang.",
+      enterNewCardNumber:
+        "💳 Yangi karta raqamingizni yuboring. Masalan: 8600 1234 5678 9012",
+      confirmCard: "✅ Tasdiqlash",
+      cardSaved: "✅ Karta raqami saqlandi.",
       withdrawalCreated:
         "✅ So'rovingiz qabul qilindi. To'lov 24 soat ichida amalga oshiriladi.",
       actionCanceled: "❌ Amaliyot bekor qilindi.",
@@ -83,6 +92,7 @@ const resources = {
       settings: "⚙️ Настройки",
       settingsHint: "⚙️ Выберите нужное действие в разделе настроек.",
       changeLanguage: "🌐 Сменить язык",
+      changeCardNumber: "💳 Изменить номер карты",
       back: "⬅️ Назад",
       cancel: "❌ Отмена",
       enterPromoCode: "🎟️ Отправьте промокод.",
@@ -106,6 +116,14 @@ const resources = {
         "⚠️ Указанная сумма больше вашего баланса. Текущий баланс: {{amount}} сум",
       enterCardNumber:
         "💳 Отправьте номер карты. Например: 8600 1234 5678 9012",
+      invalidCardNumber:
+        "⚠️ Введите номер карты в формате из 16 цифр.",
+      confirmCardNumber:
+        "💳 Номер карты: {{cardNumber}}\n\n✅ Если номер указан верно, подтвердите.",
+      enterNewCardNumber:
+        "💳 Отправьте новый номер карты. Например: 8600 1234 5678 9012",
+      confirmCard: "✅ Подтвердить",
+      cardSaved: "✅ Номер карты сохранен.",
       withdrawalCreated:
         "✅ Заявка принята. Перевод будет выполнен в течение 24 часов.",
       actionCanceled: "❌ Операция отменена.",

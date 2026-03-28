@@ -122,6 +122,13 @@ async function ensureUserProfileColumns() {
     });
   }
 
+  if (!table.withdrawal_card_number) {
+    await queryInterface.addColumn("users", "withdrawal_card_number", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
   await sequelize.query(`
     UPDATE users
     SET language_selected = TRUE

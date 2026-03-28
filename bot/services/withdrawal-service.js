@@ -4,9 +4,11 @@ const {
   WithdrawalRequest,
   BalanceTransaction,
 } = require("../../models");
+const { formatCardNumber } = require("../utils/card-number");
 
 async function createWithdrawalRequest(user, cardNumber, amount) {
   let createdRequest = null;
+  const formattedCardNumber = formatCardNumber(cardNumber) || String(cardNumber || "").trim();
 
   await sequelize.transaction(async (transaction) => {
     const lockedUser = await User.findByPk(user.id, {
@@ -30,7 +32,7 @@ async function createWithdrawalRequest(user, cardNumber, amount) {
       {
         userId: user.id,
         amount,
-        cardNumber,
+        cardNumber: formattedCardNumber,
       },
       { transaction },
     );
@@ -41,7 +43,7 @@ async function createWithdrawalRequest(user, cardNumber, amount) {
         type: "withdrawal_request",
         amount: -Math.abs(Number(amount)),
         metadata: {
-          cardNumber,
+          cardNumber: formattedCardNumber,
         },
       },
       { transaction },

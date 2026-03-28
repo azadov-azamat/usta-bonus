@@ -9,6 +9,8 @@ const PAGES = {
   BALANCE: "balance",
   WITHDRAWAL_AMOUNT: "withdrawal_amount",
   WITHDRAWAL_CARD: "withdrawal_card",
+  SETTINGS_CARD: "settings_card",
+  CARD_CONFIRM: "card_confirm",
 };
 
 function getSessionState(ctx) {
@@ -26,6 +28,8 @@ function getSessionState(ctx) {
 function clearFlowState(sessionState) {
   sessionState.step = null;
   sessionState.withdrawalAmount = null;
+  sessionState.pendingWithdrawalCard = null;
+  sessionState.cardFlowType = null;
 }
 
 function setCurrentPage(sessionState, page, options = {}) {

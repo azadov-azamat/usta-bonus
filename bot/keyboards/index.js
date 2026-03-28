@@ -1,5 +1,6 @@
 const { Markup } = require("telegraf");
 const { getLanguageButtons, t } = require("../i18n");
+const { getConfirmCardAction } = require("../utils/menu-actions");
 
 function getMainMenu(locale) {
   return [
@@ -16,7 +17,7 @@ function getBackMenu(locale) {
 
 function getSettingsMenu(locale) {
   return [
-    [t(locale, "changeLanguage")],
+    [t(locale, "changeLanguage"), t(locale, "changeCardNumber")],
     [t(locale, "back")],
   ];
 }
@@ -49,6 +50,17 @@ function getBackKeyboard(locale) {
   return Markup.keyboard(getBackMenu(locale)).resize();
 }
 
+function getCardConfirmationInlineKeyboard(locale, flowType, cardNumber) {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        t(locale, "confirmCard"),
+        getConfirmCardAction(flowType, cardNumber),
+      ),
+    ],
+  ]);
+}
+
 function getPromoCodeCopyButton(code, index) {
   return {
     text: `${index + 1}. ${code}`,
@@ -76,6 +88,7 @@ function getPromoCodeKeyboard(locale, code, index, options = {}) {
 module.exports = {
   getBackKeyboard,
   getContactKeyboard,
+  getCardConfirmationInlineKeyboard,
   getLanguageKeyboard,
   getMainMenuKeyboard,
   getPromoCodeKeyboard,
