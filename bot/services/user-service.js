@@ -1,8 +1,8 @@
 const { User } = require("../../models");
-const { isSupportedLocale } = require("../utils/locale");
+const { isKnownLocale, normalizeLocale } = require("../utils/locale");
 
 function hasSelectedLanguage(user) {
-  return Boolean(user?.languageSelected) && isSupportedLocale(user.language);
+  return Boolean(user?.languageSelected) && isKnownLocale(user.language);
 }
 
 function hasPhoneNumber(user) {
@@ -35,6 +35,7 @@ async function ensureTelegramUser(ctx) {
   user.username = ctx.from.username || user.username || null;
   user.firstName = ctx.from.first_name || user.firstName || null;
   user.lastName = ctx.from.last_name || user.lastName || null;
+  user.language = normalizeLocale(user.language);
   syncRegistrationStatus(user);
   await user.save();
 
@@ -42,7 +43,7 @@ async function ensureTelegramUser(ctx) {
 }
 
 async function setUserLanguage(user, locale) {
-  user.language = locale;
+  user.language = normalizeLocale(locale);
   user.languageSelected = true;
   syncRegistrationStatus(user);
   await user.save();

@@ -1,10 +1,9 @@
 const i18next = require("i18next");
 
-const supportedLocales = ["uz", "ru", "uz-cyrl"];
+const supportedLocales = ["uz", "ru"];
 const languageEmojis = {
   uz: "🇺🇿",
   ru: "🇷🇺",
-  "uz-cyrl": "🇺🇿",
 };
 
 const resources = {
@@ -64,8 +63,7 @@ const resources = {
         "❓ Foydali komandalar:\n🚀 /start - asosiy menyuni ochadi\n🆘 /help - yordam oynasini ochadi\n\n📌 Asosiy menyudan promokodni aktivlashtirish, promokodlar ro'yxatini ko'rish, balansni tekshirish, pul yechish va Sozlamalar -> Tilni o'zgartirish bo'limiga o'tishingiz mumkin.",
       languageNames: {
         uz: "O'zbekcha",
-        ru: "Русский",
-        "uz-cyrl": "Ўзбекча"
+        ru: "Русский"
       }
     }
   },
@@ -122,69 +120,7 @@ const resources = {
         "❓ Полезные команды:\n🚀 /start - открыть главное меню\n🆘 /help - открыть справку\n\n📌 В главном меню можно активировать промокод, посмотреть список промокодов, проверить баланс, вывести средства и открыть Настройки -> Сменить язык.",
       languageNames: {
         uz: "O'zbekcha",
-        ru: "Русский",
-        "uz-cyrl": "Ўзбекча"
-      }
-    }
-  },
-  "uz-cyrl": {
-    translation: {
-      chooseLanguage: "🌐 Илтимос, керакли тилни танланг.",
-      languageSaved: "✅ Тил сақланди.",
-      sharePhone:
-        "📱 Рўйхатдан ўтишни тугатиш учун телефон рақамингизни юборинг.",
-      contactButton: "📲 Телефон рақамни юбориш",
-      registrationDone:
-        "🎉 Рўйхатдан ўтиш муваффақиятли тугади. Энди промокодларни киритишингиз мумкин.",
-      mainMenuHint: "🏠 Асосий менюдан керакли бўлимни танланг.",
-      activatePromo: "🎟️ Промокодни активлаштириш",
-      myPromocodes: "🧾 Промокодларим",
-      myBalance: "💰 Балансим",
-      withdraw: "💸 Пул ечиш",
-      settings: "⚙️ Созламалар",
-      settingsHint: "⚙️ Созламалар бўлимида керакли амални танланг.",
-      changeLanguage: "🌐 Тилни ўзгартириш",
-      back: "⬅️ Орқага",
-      cancel: "❌ Бекор қилиш",
-      enterPromoCode: "🎟️ Промокодни юборинг.",
-      promoActivated:
-        "✅ Промокод активлаштирилди. Балансингизга {{amount}} сўм қўшилди.",
-      promoNotFound: "❌ Бундай промокод топилмади.",
-      promoAlreadyUsed: "ℹ️ Бу промокод аллақачон ишлатилган.",
-      myPromoCodesEmpty: "📭 Сизда ҳали активлаштирилган промокодлар йўқ.",
-      myPromoCodesTitle: "🧾 Сизнинг промокодларингиз:",
-      showMorePromoCodes: "➕ Яна кўрсатиш",
-      allPromoCodesShown: "✅ Барча промокодлар кўрсатилди.",
-      productLabel: "🎁 Маҳсулот",
-      priceLabel: "💵 Нархи",
-      moneyUnit: "сўм",
-      balanceText: "💰 Жорий баланс: {{amount}} сўм",
-      withdrawalNoBalance:
-        "😕 Балансингизда ечиб олиш учун маблағ йўқ.",
-      enterWithdrawalAmount:
-        "💰 Жорий баланс: {{amount}} сўм\n\n💸 Картага ўтказиш учун суммани юборинг. Масалан: 300000",
-      invalidWithdrawalAmount: "⚠️ Суммани тўғри форматда киритинг.",
-      withdrawalTooMuch:
-        "⚠️ Киритилган сумма балансингиздан катта. Жорий баланс: {{amount}} сўм",
-      enterCardNumber:
-        "💳 Карта рақамингизни юборинг. Масалан: 8600 1234 5678 9012",
-      withdrawalCreated:
-        "✅ Сўровингиз қабул қилинди. Тўлов 24 соат ичида амалга оширилади.",
-      actionCanceled: "❌ Амалёт бекор қилинди.",
-      contactRequestOnly: "📱 Телефон рақамни тугма орқали юборинг.",
-      unknownMenuAction:
-        "👇 Керакли бўлимни keyboard тугмалари орқали танланг.",
-      paymentReceiptCaption:
-        "✅ Ассалому алайкум. {{amount}} сўмлик тўловингиз амалга оширилди.",
-      requestOwnContact:
-        "🔐 Илтимос, айнан ўзингизнинг телефон рақамингизни юборинг.",
-      notRegistered: "ℹ️ Аввал рўйхатдан ўтишни якунланг.",
-      helpMessage:
-        "❓ Фойдали командалар:\n🚀 /start - асосий менюни очади\n🆘 /help - ёрдам ойнасини очади\n\n📌 Асосий менюдан промокодни активлаштириш, промокодлар рўйхатини кўриш, балансни текшириш, пул ечиш ва Созламалар -> Тилни ўзгартириш бўлимига ўтишингиз мумкин.",
-      languageNames: {
-        uz: "O'zbekcha",
-        ru: "Русский",
-        "uz-cyrl": "Ўзбекча"
+        ru: "Русский"
       }
     }
   }
@@ -208,15 +144,24 @@ function t(locale, key, options) {
   });
 }
 
+function getLanguageLabel(locale) {
+  return (
+    resources[locale]?.translation?.languageNames?.[locale] ||
+    resources.uz.translation.languageNames[locale] ||
+    locale
+  );
+}
+
 function getLanguageButtons() {
   return supportedLocales.map((locale) => ({
     locale,
-    label: `${languageEmojis[locale]} ${t(locale, `languageNames.${locale}`)}`,
+    label: `${languageEmojis[locale]} ${getLanguageLabel(locale)}`,
   }));
 }
 
 module.exports = {
   getLanguageButtons,
+  getLanguageLabel,
   supportedLocales,
   t
 };

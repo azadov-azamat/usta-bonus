@@ -6,6 +6,7 @@ const {
 } = require("../keyboards");
 const { activatePromoCode } = require("../services/promo-service");
 const {
+  applyLanguageSelection,
   askPromoCode,
   askWithdrawalAmount,
   askWithdrawalCard,
@@ -20,7 +21,6 @@ const {
 const {
   hasPhoneNumber,
   hasSelectedLanguage,
-  setUserLanguage,
 } = require("../services/user-service");
 const { createWithdrawalRequest } = require("../services/withdrawal-service");
 const {
@@ -61,31 +61,6 @@ async function replyPromoActivationResult(ctx, user, result) {
   );
 }
 
-async function handleLanguageSelection(ctx, user, selectedLocale, sessionState) {
-  const isSettingsLanguagePage =
-    sessionState.pageKey === PAGES.SETTINGS_LANGUAGE && hasPhoneNumber(user);
-
-  await setUserLanguage(user, selectedLocale);
-
-  if (isSettingsLanguagePage) {
-    goBack(sessionState, PAGES.SETTINGS);
-    await showSettingsMenu(ctx, user, "languageSaved", { replace: true });
-    return;
-  }
-
-  if (hasPhoneNumber(user)) {
-    resetNavigation(sessionState, PAGES.MAIN_MENU);
-    await ctx.reply(
-      t(selectedLocale, "languageSaved"),
-      getMainMenuKeyboard(selectedLocale),
-    );
-    return;
-  }
-
-  await ctx.reply(t(selectedLocale, "languageSaved"));
-  await promptForPhone(ctx, user, { replace: true });
-}
-
 function canHandleLanguageSelection(sessionState, user) {
   return (
     !hasSelectedLanguage(user) ||
@@ -101,7 +76,7 @@ async function handleText(ctx) {
   const selectedLocale = ctx.state.selectedLocale;
 
   if (selectedLocale && canHandleLanguageSelection(sessionState, user)) {
-    await handleLanguageSelection(ctx, user, selectedLocale, sessionState);
+    await applyLanguageSelection(ctx, user, selectedLocale);
     return;
   }
 

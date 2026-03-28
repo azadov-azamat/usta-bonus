@@ -11,11 +11,14 @@ const {
   PAGES,
   clearFlowState,
   getSessionState,
+  goBack,
+  resetNavigation,
   setCurrentPage,
 } = require("../state/navigation");
 const { formatMoney, formatMoneyWithUnit } = require("../utils/formatters");
 const { getUserLocale } = require("../utils/locale");
 const { listUserPromoCodesPage } = require("./promo-service");
+const { hasPhoneNumber, setUserLanguage } = require("./user-service");
 const PROMO_MORE_ACTION_REGEX = /^promo_more:(\d+)$/;
 
 function getPromoMoreAction(offset) {
@@ -147,6 +150,46 @@ async function showLanguageSettings(ctx, user, options = {}) {
     t(locale, "chooseLanguage"),
     getLanguageKeyboard(locale, { showBack: true }),
   );
+}
+
+async function applyLanguageSelection(ctx, user, selectedLocale) {
+  const sessionState = getSessionState(ctx);
+  const isSettingsLanguagePage =
+    sessionState.pageKey === PAGES.SETTINGS_LANGUAGE && hasPhoneNumber(user);
+
+  await setUserLanguage(user, selectedLocale);
+
+  if (isSettingsLanguagePage) {
+    goBack(sessionState, PAGES.SETTINGS);
+    await showSettingsMenu(ctx, user, "languageSaved", { replace: true });
+    return;
+  }
+
+  if (hasPhoneNumber(user)) {
+    resetNavigation(sessionState, PAGES.MAIN_MENU);
+
+    if (ctx.callbackQuery?.message) {
+      try {
+        await ctx.editMessageText(t(selectedLocale, "languageSaved"));
+      } catch {}
+    }
+
+    await ctx.reply(
+      t(selectedLocale, "languageSaved"),
+      getMainMenuKeyboard(selectedLocale),
+    );
+    return;
+  }
+
+  if (ctx.callbackQuery?.message) {
+    try {
+      await ctx.editMessageText(t(selectedLocale, "languageSaved"));
+    } catch {}
+  } else {
+    await ctx.reply(t(selectedLocale, "languageSaved"));
+  }
+
+  await promptForPhone(ctx, user, { replace: true });
 }
 
 async function askPromoCode(ctx, user, options = {}) {
@@ -290,6 +333,7 @@ async function renderPage(ctx, user, page, options = {}) {
 }
 
 module.exports = {
+  applyLanguageSelection,
   askPromoCode,
   askWithdrawalAmount,
   askWithdrawalCard,

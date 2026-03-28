@@ -20,6 +20,12 @@ function isTelegramPhotoTooLargeError(error) {
   );
 }
 
+async function sendTelegramUploadAction(chatId, action) {
+  try {
+    await bot.telegram.sendChatAction(chatId, action);
+  } catch {}
+}
+
 async function sendReceiptToTelegram(user, file, caption) {
   if (file.size > TELEGRAM_DOCUMENT_MAX_BYTES) {
     const maxSizeMb = Math.floor(TELEGRAM_DOCUMENT_MAX_BYTES / (1024 * 1024));
@@ -38,10 +44,12 @@ async function sendReceiptToTelegram(user, file, caption) {
     file.size > TELEGRAM_PHOTO_MAX_BYTES;
 
   if (shouldSendAsDocument) {
+    await sendTelegramUploadAction(user.chatId, "upload_document");
     return bot.telegram.sendDocument(user.chatId, payload, { caption });
   }
 
   try {
+    await sendTelegramUploadAction(user.chatId, "upload_photo");
     return await bot.telegram.sendPhoto(
       user.chatId,
       {
@@ -56,6 +64,7 @@ async function sendReceiptToTelegram(user, file, caption) {
       throw error;
     }
 
+    await sendTelegramUploadAction(user.chatId, "upload_document");
     return bot.telegram.sendDocument(user.chatId, payload, { caption });
   }
 }

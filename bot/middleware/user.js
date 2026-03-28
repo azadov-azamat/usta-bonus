@@ -35,6 +35,10 @@ async function userMiddleware(ctx, next) {
     return next();
   }
 
+  if (ctx.callbackQuery?.data) {
+    return next();
+  }
+
   if (!hasSelectedLanguage(user) && !selectedLocale) {
     await promptForLanguage(ctx, { replace: true });
     return;
