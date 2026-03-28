@@ -343,6 +343,186 @@ function WithdrawalRequestDetails({
   )
 }
 
+function WithdrawalRequestDetails({
+  request,
+  onClose,
+}: WithdrawalRequestDetailsProps) {
+  const uploadMutation = useUploadWithdrawalImage()
+  const [showUpload, setShowUpload] = React.useState(false)
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+  const { toast } = useToast()
+
+  React.useEffect(() => {
+    setShowUpload(false)
+    setSelectedFile(null)
+  }, [request.id])
+
+  React.useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null)
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile)
+    setPreviewUrl(objectUrl)
+
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }, [selectedFile])
+
+  const closeUploadPanel = React.useCallback(() => {
+    setSelectedFile(null)
+    setShowUpload(false)
+  }, [])
+
+  const submitSelectedImage = React.useCallback(() => {
+    if (!selectedFile) {
+      toast({
+        title: 'Rasm tanlanmagan',
+        description: 'Avval yuboriladigan rasmni tanlang.',
+        variant: 'error',
+      })
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('receipt', selectedFile)
+
+    uploadMutation.mutate(
+      { id: request.id, file: formData },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Rasm yuborildi',
+            description: 'To'lov cheki muvaffaqiyatli saqlandi.',
+            variant: 'success',
+          })
+          closeUploadPanel()
+        },
+        onError: () => {
+          toast({
+            title: 'Rasm yuborilmadi',
+            description: 'Rasm yuklashda xatolik yuz berdi.',
+            variant: 'error',
+          })
+        },
+      }
+    )
+  }, [closeUploadPanel, request.id, selectedFile, toast, uploadMutation])
+
+  return (
+    <Card title="Ariza Tafsilotlari" action={<button onClick={onClose} className="text-lg text-foreground hover:text-text-secondary">×</button>}>
+      <div className="space-y-6">
+        {/* Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="text-sm font-medium text-text-secondary">Ariza ID</label>
+            <p className="text-base font-mono font-semibold text-foreground mt-2">
+              {request.id}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-text-secondary">Foydalanuvchi ID</label>
+            <p className="text-base font-mono font-semibold text-foreground mt-2">
+              {request.user?.id || 'N/A'}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-text-secondary">Summa</label>
+            <p className="text-base font-semibold text-foreground mt-2">
+              {request.amount.toLocaleString()} so&apos;m
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-text-secondary">Holati</label>
+            <div className="mt-2">
+              <Badge variant={request.status === 'pending' ? 'warning' : request.status === 'completed' ? 'success' : 'error'}>
+                {request.status === 'pending' ? 'Kutilayotgan' : request.status === 'completed' ? 'Tasdiqlangan' : 'Rad etilgan'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Image Section */}
+        <div className="border-t border-border pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-foreground">Rasm</h3>
+            {request.status === 'pending' && !request.receiptImageUrl && !showUpload && (
+              <button
+                onClick={() => setShowUpload(true)}
+                className="text-sm font-medium text-accent hover:text-accent-hover transition-colors"
+              >
+                Rasm Yuklash
+              </button>
+            )}
+          </div>
+
+          {request.receiptImageUrl ? (
+            <div className="space-y-3">
+              <img
+                src={request.receiptImageUrl}
+                alt="Ariza Rasmi"
+                className="max-w-sm max-h-96 rounded-md border border-border"
+              />
+              {uploadMutation.isPending && <p className="text-sm text-text-secondary">Yuklanmoqda...</p>}
+            </div>
+          ) : showUpload ? (
+            <div className="space-y-4">
+              <UploadZone
+                onFileSelect={setSelectedFile}
+                selectedFile={selectedFile}
+                onClear={() => setSelectedFile(null)}
+                accept="image/*"
+                label="Rasm faylini tanlang yoki sudring"
+                description="PNG, JPG, JPEG (max 5MB)"
+                loading={uploadMutation.isPending}
+              />
+
+              {previewUrl ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-text-secondary">
+                    Yuborishdan oldin rasmni tekshirib oling. Xato rasm bo&apos;lsa o&apos;chirib qayta yuklashingiz mumkin.
+                  </p>
+                  <ImagePreview
+                    imageUrl={previewUrl}
+                    alt="Tanlangan rasm"
+                    onRemove={() => setSelectedFile(null)}
+                    className="max-w-sm h-96 border border-border"
+                  />
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="primary"
+                  onClick={submitSelectedImage}
+                  disabled={!selectedFile}
+                  loading={uploadMutation.isPending}
+                >
+                  Yuborish
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={closeUploadPanel}
+                  disabled={uploadMutation.isPending}
+                >
+                  Bekor qilish
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-text-secondary">
+              Rasm mavjud emas
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
     const objectUrl = URL.createObjectURL(selectedFile)
     setPreviewUrl(objectUrl)
 
