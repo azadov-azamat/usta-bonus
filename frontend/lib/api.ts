@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { emitApiErrorToast, logServerError } from './api-error'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -9,6 +10,24 @@ export const api = axios.create({
   },
   withCredentials: true,
 })
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status
+    const showErrorToast =
+      error?.config?.showErrorToast !== false ||
+      (typeof status === 'number' && status >= 500)
+
+    logServerError(error)
+
+    if (showErrorToast) {
+      emitApiErrorToast(error)
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 // Users API
 export const usersAPI = {

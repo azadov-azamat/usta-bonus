@@ -13,12 +13,33 @@ const webhookPath = getWebhookPath();
 const frontendBuildPath = path.join(__dirname, "..", "frontend", "out");
 const frontendIndexPath = path.join(frontendBuildPath, "index.html");
 const hasFrontendBuild = fs.existsSync(frontendIndexPath);
+const allowedCorsOrigins = new Set(
+  [
+    "https://usta-bonus.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    process.env.FRONTEND_URL,
+    process.env.CORS_ALLOWED_ORIGINS,
+  ]
+    .flatMap((value) => String(value || "").split(","))
+    .map((value) => value.trim())
+    .filter(Boolean),
+);
+
+function corsOriginHandler(origin, callback) {
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+
+  callback(null, allowedCorsOrigins.has(origin));
+}
 
 app.disable("x-powered-by");
 app.use(
   cors({
     credentials: true,
-    origin: true,
+    origin: corsOriginHandler,
   }),
 );
 app.use(morgan("dev"));

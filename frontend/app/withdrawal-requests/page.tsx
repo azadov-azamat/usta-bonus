@@ -218,13 +218,6 @@ function WithdrawalRequestDetails({
           })
           closeUploadPanel()
         },
-        onError: () => {
-          toast({
-            title: 'Rasm yuborilmadi',
-            description: 'Rasm yuklashda xatolik yuz berdi.',
-            variant: 'error',
-          })
-        },
       }
     )
   }, [closeUploadPanel, request.id, selectedFile, toast, uploadMutation])

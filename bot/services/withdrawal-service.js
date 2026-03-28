@@ -6,6 +6,8 @@ const {
 } = require("../../models");
 
 async function createWithdrawalRequest(user, cardNumber, amount) {
+  let createdRequest = null;
+
   await sequelize.transaction(async (transaction) => {
     const lockedUser = await User.findByPk(user.id, {
       transaction,
@@ -24,7 +26,7 @@ async function createWithdrawalRequest(user, cardNumber, amount) {
       { transaction },
     );
 
-    await WithdrawalRequest.create(
+    createdRequest = await WithdrawalRequest.create(
       {
         userId: user.id,
         amount,
@@ -47,7 +49,7 @@ async function createWithdrawalRequest(user, cardNumber, amount) {
   });
 
   await user.reload();
-  return user;
+  return createdRequest;
 }
 
 module.exports = {

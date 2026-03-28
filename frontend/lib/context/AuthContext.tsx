@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { api } from '../api'
+import { normalizeApiError } from '../api-error'
 
 export interface AuthUser {
   id: string
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchSession = async () => {
     const response = await api.get('/api/admin/auth/session', {
+      showErrorToast: false,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         Pragma: 'no-cache',
@@ -108,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(admin)
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Login failed. Please try again.'
+      const errorMsg = normalizeApiError(err).message || 'Login failed. Please try again.'
       setError(errorMsg)
       throw new Error(errorMsg)
     } finally {

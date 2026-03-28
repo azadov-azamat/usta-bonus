@@ -46,10 +46,14 @@ cp .env.example .env
 - `PORT`
 - `BOT_BASE_URL` (`production` uchun)
 - `BOT_WEBHOOK_PATH`
+- `FRONTEND_URL` (ixtiyoriy, ruxsat etilgan frontend origin)
+- `CORS_ALLOWED_ORIGINS` (ixtiyoriy, vergul bilan ajratilgan qo'shimcha originlar)
 - `ADMIN_LOGIN`
 - `ADMIN_PASSWORD`
 - `ADMIN_AUTH_SECRET`
 - `DB_SYNC_ALTER`
+- `ADMIN_PANEL_URL` (ixtiyoriy, admin panel bazaviy URL'i)
+- `ADMIN_WITHDRAWALS_URL` (ixtiyoriy, adminlarga yuboriladigan to'g'ridan-to'g'ri withdrawal page linki)
 
 Mavjud bazaga yangi ustunlarni tushirish kerak bo'lsa, bir martalik `DB_SYNC_ALTER=true` qilib serverni ishga tushiring. Schema yangilangandan keyin uni yana `false` ga qaytarish tavsiya qilinadi.
 

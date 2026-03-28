@@ -7,6 +7,7 @@ import '@/lib/i18n'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { Toaster } from '@/components/Toaster'
+import { ApiErrorToastBridge } from '@/components/ApiErrorToastBridge'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ export function Providers({ children }: ProvidersProps) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           {children}
+          <ApiErrorToastBridge />
           <Toaster />
         </AuthProvider>
       </QueryClientProvider>

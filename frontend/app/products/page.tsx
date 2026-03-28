@@ -48,13 +48,6 @@ function ProductsContent() {
             variant: 'success',
           })
         },
-        onError: () => {
-          toast({
-            title: 'Import bajarilmadi',
-            description: 'Import vaqtida xatolik yuz berdi.',
-            variant: 'error',
-          })
-        },
       })
     } catch (error) {
       toast({

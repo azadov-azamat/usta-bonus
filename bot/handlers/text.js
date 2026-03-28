@@ -22,6 +22,9 @@ const {
   hasPhoneNumber,
   hasSelectedLanguage,
 } = require("../services/user-service");
+const {
+  notifyAdminsAboutWithdrawalRequest,
+} = require("../services/admin-notification-service");
 const { createWithdrawalRequest } = require("../services/withdrawal-service");
 const {
   PAGES,
@@ -202,11 +205,26 @@ async function handleText(ctx) {
     }
 
     resetNavigation(sessionState, PAGES.MAIN_MENU);
-    await createWithdrawalRequest(user, cardNumber, amount);
+    const withdrawalRequest = await createWithdrawalRequest(
+      user,
+      cardNumber,
+      amount,
+    );
+
     await ctx.reply(
       t(locale, "withdrawalCreated"),
       getMainMenuKeyboard(locale),
     );
+
+    try {
+      await notifyAdminsAboutWithdrawalRequest(
+        ctx.telegram,
+        user,
+        withdrawalRequest,
+      );
+    } catch (error) {
+      console.error("Adminlarga withdrawal notification yuborilmadi:", error);
+    }
     return;
   }
 
