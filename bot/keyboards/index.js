@@ -17,7 +17,8 @@ function getBackMenu(locale) {
 
 function getSettingsMenu(locale) {
   return [
-    [t(locale, "changeLanguage"), t(locale, "changeCardNumber")],
+    [t(locale, "changeLanguage")],
+    [t(locale, "changeCardNumber")],
     [t(locale, "back")],
   ];
 }

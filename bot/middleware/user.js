@@ -19,6 +19,11 @@ function isHelpCommand(ctx) {
   return /^\/help(?:@\w+)?(?:\s|$)/.test(text);
 }
 
+function isPrivacyCommand(ctx) {
+  const text = String(ctx.message?.text || "").trim();
+  return /^\/privacy(?:@\w+)?(?:\s|$)/.test(text);
+}
+
 async function userMiddleware(ctx, next) {
   if (!ctx.from) {
     return next();
@@ -31,7 +36,7 @@ async function userMiddleware(ctx, next) {
   ctx.state.user = user;
   ctx.state.selectedLocale = selectedLocale;
 
-  if (isStartCommand(ctx) || isHelpCommand(ctx)) {
+  if (isStartCommand(ctx) || isHelpCommand(ctx) || isPrivacyCommand(ctx)) {
     return next();
   }
 

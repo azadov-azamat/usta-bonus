@@ -1,5 +1,6 @@
 const handleContact = require("./handlers/contact");
 const handleHelp = require("./handlers/help");
+const handlePrivacy = require("./handlers/privacy");
 const {
   BACK_ACTION,
   CONFIRM_CARD_ACTION_REGEX,
@@ -20,6 +21,7 @@ const handleText = require("./handlers/text");
 function registerBotHandlers(bot) {
   bot.start(handleStart);
   bot.help(handleHelp);
+  bot.command("privacy", handlePrivacy);
   bot.action(SETTINGS_LANGUAGE_ACTION, handleSettingsLanguageAction);
   bot.action(BACK_ACTION, handleMenuBackAction);
   bot.action(CONFIRM_CARD_ACTION_REGEX, handleConfirmCardAction);

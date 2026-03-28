@@ -69,7 +69,9 @@ const resources = {
         "🔐 Iltimos, aynan o'zingizning telefon raqamingizni yuboring.",
       notRegistered: "ℹ️ Avval registratsiyani yakunlang.",
       helpMessage:
-        "❓ Foydali komandalar:\n🚀 /start - asosiy menyuni ochadi\n🆘 /help - yordam oynasini ochadi\n\n📌 Asosiy menyudan promokodni aktivlashtirish, promokodlar ro'yxatini ko'rish, balansni tekshirish, pul yechish va Sozlamalar -> Tilni o'zgartirish bo'limiga o'tishingiz mumkin.",
+        "❓ Foydali komandalar:\n🚀 /start - asosiy menyuni ochadi\n🆘 /help - yordam oynasini ochadi\n🔒 /privacy - maxfiylik ma'lumotlarini ko'rsatadi\n\n📌 Asosiy menyudan promokodni aktivlashtirish, promokodlar ro'yxatini ko'rish, balansni tekshirish, pul yechish va Sozlamalar -> Tilni o'zgartirish bo'limiga o'tishingiz mumkin.\n\n📞 Savol yoki taklif bo'lsa, +998912605763 raqami bilan bog'lanishingiz mumkin.",
+      privacyMessage:
+        "🔒 Maxfiylik haqida\n\nBot xizmatni ko'rsatish uchun faqat zarur ma'lumotlarni saqlaydi: Telegram profilingizga oid texnik identifikatorlar, tanlangan til, yuborgan telefon raqamingiz, aktivlashtirilgan promokodlar, balans va pul yechish uchun kiritilgan karta ma'lumotlari.\n\nBu ma'lumotlar promokodlarni hisoblash, balansni yuritish, to'lovlarni ko'rib chiqish va siz bilan bog'lanish zarur bo'lganda ishlatiladi. Ma'lumotlar uchinchi shaxslarga sotilmaydi va faqat xizmatni yuritish uchun kerak bo'lgan mas'ul xodimlar doirasida ko'riladi.\n\nBotdan foydalanganingizda yuborgan ma'lumotlaringizni ehtiyotkorlik bilan qayta ishlashga harakat qilamiz. Savol, taklif yoki ma'lumotlaringiz bo'yicha murojaat uchun +998912605763 raqami bilan bog'lanishingiz mumkin.",
       languageNames: {
         uz: "O'zbekcha",
         ru: "Русский"
@@ -135,7 +137,9 @@ const resources = {
         "🔐 Пожалуйста, отправьте именно свой номер телефона.",
       notRegistered: "ℹ️ Сначала завершите регистрацию.",
       helpMessage:
-        "❓ Полезные команды:\n🚀 /start - открыть главное меню\n🆘 /help - открыть справку\n\n📌 В главном меню можно активировать промокод, посмотреть список промокодов, проверить баланс, вывести средства и открыть Настройки -> Сменить язык.",
+        "❓ Полезные команды:\n🚀 /start - открыть главное меню\n🆘 /help - открыть справку\n🔒 /privacy - показать информацию о конфиденциальности\n\n📌 В главном меню можно активировать промокод, посмотреть список промокодов, проверить баланс, вывести средства и открыть Настройки -> Сменить язык.\n\n📞 Если у вас есть вопрос или предложение, можете связаться по номеру +998912605763.",
+      privacyMessage:
+        "🔒 Конфиденциальность\n\nБот хранит только те данные, которые нужны для работы сервиса: технические идентификаторы Telegram, выбранный язык, отправленный вами номер телефона, активированные промокоды, баланс и данные карты, указанные для вывода средств.\n\nЭта информация используется для активации промокодов, учета баланса, обработки заявок на вывод и связи с вами при необходимости. Данные не продаются третьим лицам и доступны только ответственным сотрудникам в рамках работы сервиса.\n\nМы стараемся бережно обрабатывать информацию, которую вы отправляете в боте. По вопросам, предложениям или обращениям, связанным с вашими данными, можно связаться по номеру +998912605763.",
       languageNames: {
         uz: "O'zbekcha",
         ru: "Русский"

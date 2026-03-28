@@ -14,10 +14,12 @@ const { getUserLocale } = require("../utils/locale");
 const GENERIC_HELP_TEXT = [
   "🚀 /start - botni ishga tushirish",
   "🆘 /help - yordam",
+  "🔒 /privacy - maxfiylik haqida",
+  "",
+  "📞 Savol yoki taklif bo'lsa, +998912605763 raqami bilan bog'lanishingiz mumkin.",
   "",
   "🌐 Avval tilni tanlang.",
   "🌐 Сначала выберите язык.",
-  "🌐 Аввал тилни танланг.",
 ].join("\n");
 
 async function handleHelp(ctx) {
