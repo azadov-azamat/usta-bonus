@@ -108,15 +108,14 @@ function ProductsContent() {
       description="Mahsulotlarni boshqaring va import/export qiling"
     >
       <div className="space-y-6">
-        {/* Actions */}
-        <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+        {/* Actions Bar */}
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div>
-            <p className="text-sm text-muted">Jami mahsulotlar: {products.length}</p>
+            <p className="text-sm text-text-secondary font-medium">Jami mahsulotlar: <span className="text-foreground font-semibold">{products.length}</span></p>
           </div>
 
           <div className="flex gap-2 flex-wrap">
-            <Button variant="secondary" size="md" onClick={handleExportTemplate}>
-              <Download size={18} />
+            <Button variant="secondary" size="md" onClick={handleExportTemplate} icon={<Download size={16} />}>
               Shabloni yuklash
             </Button>
 
@@ -125,17 +124,17 @@ function ProductsContent() {
               size="md"
               onClick={handleExportData}
               disabled={products.length === 0}
+              icon={<Download size={16} />}
             >
-              <Download size={18} />
-              Ma\'lumotlarni yuklash
+              Ma&apos;lumotlarni yuklash
             </Button>
 
             <Button
               variant="primary"
               size="md"
               onClick={() => setShowImport(!showImport)}
+              icon={<Plus size={16} />}
             >
-              <Plus size={18} />
               {showImport ? 'Bekor qilish' : 'Import qilish'}
             </Button>
           </div>
@@ -143,38 +142,37 @@ function ProductsContent() {
 
         {/* Import Section */}
         {showImport && (
-          <Card className="p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Excel faylni import qilish</h3>
+          <Card title="Excel faylni import qilish" subtitle="Shakilni yuklang va faylni tanlang">
             <UploadZone
               onFileSelect={handleImport}
               loading={importMutation.isPending}
             />
             {importMutation.isPending && (
-              <p className="text-sm text-muted mt-4">Import qilinmoqda...</p>
+              <p className="text-sm text-text-secondary mt-4">Import qilinmoqda...</p>
             )}
           </Card>
         )}
 
         {/* Products Table */}
-        <DataTable
-          data={products}
-          columns={columns}
-          loading={isLoading}
-          emptyMessage="Mahsulotlar topilmadi"
-          onRowClick={(row) => {
-            // Navigate to product details page
-            window.location.href = `/products/${row.id}`
-          }}
-          actions={[
-            {
-              label: 'Tafsilotlar',
-              onClick: (row) => {
-                window.location.href = `/products/${row.id}`
+        <Card>
+          <DataTable
+            data={products}
+            columns={columns}
+            loading={isLoading}
+            emptyMessage="Mahsulotlar topilmadi"
+            onRowClick={(row) => {
+              window.location.href = `/products/${row.id}`
+            }}
+            actions={[
+              {
+                label: 'Ko\'rish',
+                onClick: (row) => {
+                  window.location.href = `/products/${row.id}`
+                },
               },
-              className: 'border border-border bg-background text-foreground hover:bg-secondary',
-            },
-          ]}
-        />
+            ]}
+          />
+        </Card>
       </div>
     </AdminLayout>
   )
