@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Globe } from 'lucide-react'
+import { Globe, ChevronDown } from 'lucide-react'
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation()
@@ -24,26 +24,28 @@ export function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-foreground transition-colors hover:bg-secondary"
+        className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-foreground text-sm font-medium hover:bg-surface-hover transition-colors"
+        aria-label="Change language"
       >
-        <Globe className="w-4 h-4" />
-        <span className="text-sm font-medium">{currentLang.flag}</span>
+        <Globe size={16} />
+        <span>{currentLang.flag}</span>
+        <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-background shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-2 w-40 bg-background border border-border rounded-md shadow-lg overflow-hidden">
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
-              className={`w-full text-left px-4 py-3 flex items-center gap-2 transition-colors ${
+              className={`w-full text-left px-3 py-2.5 flex items-center gap-2 text-sm transition-colors ${
                 i18n.language === lang.code
-                  ? 'bg-foreground text-background'
-                  : 'text-foreground hover:bg-secondary'
+                  ? 'bg-primary text-white'
+                  : 'text-foreground hover:bg-surface'
               }`}
             >
               <span>{lang.flag}</span>
-              <span className="text-sm font-medium">{lang.name}</span>
+              <span className="font-medium">{lang.name}</span>
             </button>
           ))}
         </div>

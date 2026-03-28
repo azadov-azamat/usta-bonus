@@ -6,14 +6,74 @@ import { useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/context/AuthContext'
-import {
-  Users,
-  Package,
-  FileText,
-  Menu,
-  X,
-  LogOut,
-} from 'lucide-react'
+import { Menu, X, Car, Image as ImageIcon, Wrench, ShoppingCart } from 'lucide-react'
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ComponentType<{ size: number }>
+}
+
+function SidebarLogo() {
+  return (
+    <div className="border-b border-border pb-4">
+      <div className="flex items-center gap-2">
+        <Car size={24} className="text-primary" />
+        <span className="text-lg font-semibold text-foreground">VehicleHub</span>
+      </div>
+    </div>
+  )
+}
+
+interface SidebarNavProps {
+  items: NavItem[]
+  currentPath: string
+  onNavigate: () => void
+}
+
+function SidebarNav({ items, currentPath, onNavigate }: SidebarNavProps) {
+  return (
+    <nav className="space-y-0.5">
+      {items.map((item) => {
+        const Icon = item.icon
+        const isActive = currentPath === item.href
+        
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors rounded-md ${
+              isActive
+                ? 'bg-primary text-white'
+                : 'text-text-secondary hover:text-foreground hover:bg-surface-hover'
+            }`}
+          >
+            <Icon size={18} />
+            <span>{item.label}</span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
+interface SidebarFooterProps {
+  onLogout: () => void
+  logoutLabel: string
+}
+
+function SidebarFooter({ onLogout, logoutLabel }: SidebarFooterProps) {
+  return (
+    <button
+      onClick={onLogout}
+      className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-error transition-colors rounded-md hover:bg-surface-hover"
+    >
+      <X size={18} />
+      <span>{logoutLabel}</span>
+    </button>
+  )
+}
 
 export function Sidebar() {
   const router = useRouter()
@@ -22,10 +82,11 @@ export function Sidebar() {
   const { logout } = useAuth()
   const [isOpen, setIsOpen] = React.useState(false)
 
-  const navItems = [
-    { label: t('dashboard.users'), href: '/users', icon: Users },
-    { label: t('dashboard.products'), href: '/products', icon: Package },
-    { label: t('withdrawals.title'), href: '/withdrawal-requests', icon: FileText },
+  const navItems: NavItem[] = [
+    { label: t('dashboard.vehicles') || 'Vehicles', href: '/vehicles', icon: Car },
+    { label: t('dashboard.media') || 'Media', href: '/media', icon: ImageIcon },
+    { label: t('dashboard.services') || 'Services', href: '/services', icon: Wrench },
+    { label: t('dashboard.purchasing') || 'Purchasing', href: '/purchasing', icon: ShoppingCart },
   ]
 
   const handleLogout = async () => {
@@ -33,69 +94,51 @@ export function Sidebar() {
     router.push('/login')
   }
 
+  const handleNavigate = () => {
+    setIsOpen(false)
+  }
+
   return (
     <>
       {/* Mobile Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed left-4 top-4 z-40 rounded-xl border border-border bg-background p-2 text-foreground shadow-sm lg:hidden"
+        className="fixed left-4 top-4 z-40 rounded-md p-2 bg-surface border border-border text-foreground lg:hidden"
+        aria-label="Toggle menu"
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-30 h-screen w-64 transform border-r border-border bg-background text-foreground transition-transform duration-300 lg:relative lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-30 h-screen w-56 bg-background border-r border-border transition-transform duration-300 lg:relative lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-full flex-col p-6">
-          {/* Logo */}
-          <div className="mb-10 mt-12 border-b border-border pb-6 lg:mt-0">
-            <h1 className="text-2xl font-bold">Usta Bonus</h1>
-            <p className="mt-1 text-sm text-muted">Admin Panel</p>
+        <div className="flex h-full flex-col p-4">
+          <SidebarLogo />
+          
+          <div className="flex-1 py-6">
+            <SidebarNav 
+              items={navItems} 
+              currentPath={pathname} 
+              onNavigate={handleNavigate}
+            />
           </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors ${
-                    isActive
-                      ? 'bg-foreground text-background'
-                      : 'text-foreground/70 hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Footer */}
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <LogOut size={20} />
-            <span className="font-medium">{t('common.logout')}</span>
-          </button>
+          
+          <SidebarFooter 
+            onLogout={handleLogout}
+            logoutLabel={t('common.logout') || 'Logout'}
+          />
         </div>
       </aside>
 
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
           onClick={() => setIsOpen(false)}
+          aria-hidden="true"
         />
       )}
     </>

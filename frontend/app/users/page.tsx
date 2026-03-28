@@ -4,6 +4,7 @@ import React from 'react'
 import { useUsers } from '@/lib/hooks/useUsers'
 import { AdminLayout } from '@/components/AdminLayout'
 import { DataTable } from '@/components/DataTable'
+import { Card } from '@/components/Card'
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 
 function UsersContent() {
@@ -40,41 +41,45 @@ function UsersContent() {
   if (error) {
     return (
       <AdminLayout title="Foydalanuvchilar" description="Foydalanuvchilar ro'yhatini boshqaring">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg text-red-800 dark:text-red-400">
-          Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.
-        </div>
+        <Card>
+          <div className="bg-error/10 border border-error/30 p-4 rounded-md text-error text-sm">
+            Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.
+          </div>
+        </Card>
       </AdminLayout>
     )
   }
 
   return (
-    <AdminLayout title="">
+    <AdminLayout 
+      title="Foydalanuvchilar"
+      description="Foydalanuvchilar ro'yhatini boshqaring"
+    >
       <div className="space-y-6">
-      
+        {/* Summary */}
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted">Jami foydalanuvchilar: {users.length}</p>
-          </div>
+          <p className="text-sm text-text-secondary font-medium">Jami foydalanuvchilar: <span className="text-foreground font-semibold">{users.length}</span></p>
         </div>
 
-        <DataTable
-          data={users}
-          columns={columns}
-          loading={isLoading}
-          emptyMessage="Foydalanuvchilar topilmadi"
-          actions={[
-            {
-              label: 'Ko\'rish',
-              onClick: (row) => console.log('View user:', row),
-              className: 'border border-border bg-background text-foreground hover:bg-secondary',
-            },
-            {
-              label: 'Tahrirlash',
-              onClick: (row) => console.log('Edit user:', row),
-              className: 'border border-border bg-background text-foreground hover:bg-secondary',
-            },
-          ]}
-        />
+        {/* Users Table */}
+        <Card>
+          <DataTable
+            data={users}
+            columns={columns}
+            loading={isLoading}
+            emptyMessage="Foydalanuvchilar topilmadi"
+            actions={[
+              {
+                label: 'Ko\'rish',
+                onClick: (row) => console.log('View user:', row),
+              },
+              {
+                label: 'Tahrirlash',
+                onClick: (row) => console.log('Edit user:', row),
+              },
+            ]}
+          />
+        </Card>
       </div>
     </AdminLayout>
   )
