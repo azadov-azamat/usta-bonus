@@ -22,6 +22,7 @@ const runtimeState = {
   started: false,
   mode: "stopped",
 };
+let pollingLaunchPromise = null;
 
 bot.use(session());
 bot.use(userMiddleware);
@@ -33,6 +34,9 @@ bot.catch((error) => {
 });
 
 async function startBotRuntime() {
+  const botInfo = await bot.telegram.getMe();
+  console.log(`Asosiy bot ulandi: @${botInfo.username} (${botInfo.id})`);
+
   await bot.telegram.setMyCommands([
     { command: "start", description: "🚀 Botni ishga tushirish" },
     { command: "help", description: "🆘 Yordam" },
@@ -60,9 +64,14 @@ async function startBotRuntime() {
   await bot.telegram.deleteWebhook({
     drop_pending_updates: true,
   });
-  await bot.launch({
-    dropPendingUpdates: true,
-  });
+  pollingLaunchPromise = bot
+    .launch({
+      dropPendingUpdates: true,
+    })
+    .catch((error) => {
+      console.error("Asosiy bot polling xatoligi:", error);
+      throw error;
+    });
   runtimeState.started = true;
   runtimeState.mode = "polling";
   console.log("Telegram polling ishga tushdi.");
@@ -85,6 +94,7 @@ async function stopBotRuntime(reason = "shutdown") {
 
   runtimeState.started = false;
   runtimeState.mode = "stopped";
+  pollingLaunchPromise = null;
 }
 
 module.exports = {

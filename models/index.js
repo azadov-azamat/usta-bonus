@@ -90,7 +90,7 @@ async function ensureWithdrawalReceiptColumns() {
 
   if (!table.receipt_image_data) {
     await queryInterface.addColumn("withdrawal_requests", "receipt_image_data", {
-      type: Sequelize.BLOB("long"),
+      type: Sequelize.BLOB,
       allowNull: true
     });
   }
@@ -129,6 +129,92 @@ async function ensureUserProfileColumns() {
     });
   }
 
+  if (!table.entered_first_name) {
+    await queryInterface.addColumn("users", "entered_first_name", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.entered_last_name) {
+    await queryInterface.addColumn("users", "entered_last_name", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.admin_chat_id) {
+    await queryInterface.addColumn("users", "admin_chat_id", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.registration_status) {
+    await queryInterface.addColumn("users", "registration_status", {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "awaiting_phone"
+    });
+  }
+
+  if (!table.registration_reviewed_by_admin) {
+    await queryInterface.addColumn("users", "registration_reviewed_by_admin", {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    });
+  }
+
+  if (!table.registration_photo_file_id) {
+    await queryInterface.addColumn("users", "registration_photo_file_id", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.registration_photo_unique_file_id) {
+    await queryInterface.addColumn("users", "registration_photo_unique_file_id", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.registration_photo_data) {
+    await queryInterface.addColumn("users", "registration_photo_data", {
+      type: Sequelize.BLOB,
+      allowNull: true
+    });
+  }
+
+  if (!table.registration_photo_mime_type) {
+    await queryInterface.addColumn("users", "registration_photo_mime_type", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.registration_photo_name) {
+    await queryInterface.addColumn("users", "registration_photo_name", {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  }
+
+  if (!table.registration_photo_submitted_at) {
+    await queryInterface.addColumn("users", "registration_photo_submitted_at", {
+      type: Sequelize.DATE,
+      allowNull: true
+    });
+  }
+
+  if (!table.approved_at) {
+    await queryInterface.addColumn("users", "approved_at", {
+      type: Sequelize.DATE,
+      allowNull: true
+    });
+  }
+
   await sequelize.query(`
     UPDATE users
     SET language_selected = TRUE
@@ -142,10 +228,54 @@ async function ensureUserProfileColumns() {
 
   await sequelize.query(`
     UPDATE users
+    SET is_registered = FALSE
+    WHERE role <> 'admin'
+      AND (
+        language_selected = FALSE
+        OR phone_number IS NULL
+        OR entered_first_name IS NULL
+        OR entered_last_name IS NULL
+      )
+  `);
+
+  await sequelize.query(`
+    UPDATE users
     SET is_registered = TRUE
-    WHERE is_registered = FALSE
-      AND language_selected = TRUE
-      AND phone_number IS NOT NULL
+    WHERE (
+        role = 'admin'
+        OR (
+          language_selected = TRUE
+          AND entered_first_name IS NOT NULL
+          AND entered_last_name IS NOT NULL
+          AND phone_number IS NOT NULL
+        )
+      )
+      AND is_registered = FALSE
+  `);
+
+  await sequelize.query(`
+    UPDATE users
+    SET registration_status = 'awaiting_phone'
+    WHERE role <> 'admin'
+      AND (
+        language_selected = FALSE
+        OR entered_first_name IS NULL
+        OR entered_last_name IS NULL
+      )
+  `);
+
+  await sequelize.query(`
+    UPDATE users
+    SET
+      registration_status = 'approved',
+      approved_at = COALESCE(approved_at, NOW()),
+      registration_reviewed_by_admin = TRUE
+    WHERE role = 'admin'
+       OR (
+         registration_status = 'approved'
+         AND approved_at IS NOT NULL
+         AND registration_photo_submitted_at IS NULL
+       )
   `);
 }
 

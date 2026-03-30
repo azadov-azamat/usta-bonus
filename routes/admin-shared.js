@@ -1,5 +1,9 @@
 const multer = require("multer");
 const { bot } = require("../bot");
+const {
+  getDisplayFirstName,
+  getDisplayLastName,
+} = require("../bot/services/user-service");
 
 const TELEGRAM_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
 const TELEGRAM_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
@@ -77,22 +81,41 @@ function getReceiptImageUrl(req, request) {
   return `${req.protocol}://${req.get("host")}/api/admin/withdrawals/${request.id}/receipt`;
 }
 
-function mapUser(user) {
+function getRegistrationPhotoUrl(req, user) {
+  if (!user.registrationPhotoData && !user.registrationPhotoFileId) {
+    return null;
+  }
+
+  return `${req.protocol}://${req.get("host")}/api/admin/users/${user.id}/registration-photo`;
+}
+
+function mapUser(user, req) {
   const promoCodes = user.activatedPromoCodes || [];
   const withdrawals = user.withdrawalRequests || [];
   const withdrawnAmount = withdrawals
     .filter((request) => request.status !== "rejected")
     .reduce((total, request) => total + Number(request.amount), 0);
+  const fullName = [
+    getDisplayFirstName(user),
+    getDisplayLastName(user),
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return {
     id: user.id,
     telegramId: user.telegramId,
-    fullName: [user.firstName, user.lastName].filter(Boolean).join(" "),
+    fullName,
+    telegramFullName: [user.firstName, user.lastName].filter(Boolean).join(" "),
     username: user.username,
     phoneNumber: user.phoneNumber,
     language: user.language,
     balance: Number(user.balance),
     isRegistered: user.isRegistered,
+    registrationStatus: user.registrationStatus,
+    approvedAt: user.approvedAt,
+    registrationPhotoSubmittedAt: user.registrationPhotoSubmittedAt,
+    registrationPhotoUrl: req ? getRegistrationPhotoUrl(req, user) : null,
     promoCodesCount: promoCodes.length,
     totalEarned: promoCodes.reduce(
       (total, code) =>
@@ -140,7 +163,10 @@ function mapPromoCode(code) {
       ? {
           id: code.activatedBy.id,
           telegramId: code.activatedBy.telegramId,
-          fullName: [code.activatedBy.firstName, code.activatedBy.lastName]
+          fullName: [
+            getDisplayFirstName(code.activatedBy),
+            getDisplayLastName(code.activatedBy),
+          ]
             .filter(Boolean)
             .join(" "),
           phoneNumber: code.activatedBy.phoneNumber,
@@ -163,7 +189,10 @@ function mapWithdrawal(req, request) {
       ? {
           id: request.user.id,
           telegramId: request.user.telegramId,
-          fullName: [request.user.firstName, request.user.lastName]
+          fullName: [
+            getDisplayFirstName(request.user),
+            getDisplayLastName(request.user),
+          ]
             .filter(Boolean)
             .join(" "),
           phoneNumber: request.user.phoneNumber,
@@ -176,6 +205,7 @@ function mapWithdrawal(req, request) {
 
 module.exports = {
   excelUpload,
+  getRegistrationPhotoUrl,
   mapAdminSession,
   mapProduct,
   mapPromoCode,

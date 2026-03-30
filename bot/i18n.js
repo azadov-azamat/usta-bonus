@@ -11,9 +11,27 @@ const resources = {
     translation: {
       chooseLanguage: "🌐 Iltimos, kerakli tilni tanlang.",
       languageSaved: "✅ Til saqlandi.",
+      enterFirstName: "👤 Ismingizni kiriting.",
+      invalidFirstName:
+        "⚠️ Ism noto'g'ri. 2-50 ta harfdan iborat ism kiriting.",
+      enterLastName: "👤 Familiyangizni kiriting.",
+      invalidLastName:
+        "⚠️ Familiya noto'g'ri. 2-50 ta harfdan iborat familiya kiriting.",
       sharePhone:
         "📱 Registratsiyani tugatish uchun telefon raqamingizni yuboring.",
       contactButton: "📲 Telefon raqamni yuborish",
+      shareProfilePhoto:
+        "📸 Endi o'zingizning rasmingizni yuboring. Rasmda shaxsingiz aniq ko'rinishi kerak.",
+      profilePhotoOnly:
+        "📸 Registratsiyani davom ettirish uchun rasm yuboring.",
+      registrationPhotoReceived:
+        "⏳ Rasm qabul qilindi. Admin tasdiqlagach botdan to'liq foydalanishingiz mumkin.",
+      registrationPendingApproval:
+        "⏳ Ma'lumotlaringiz admin ko'rib chiqmoqda. Tasdiqlangach sizga shu yerning o'zida xabar yuboramiz.",
+      registrationApproved:
+        "✅ Profilingiz tasdiqlandi. Endi botdan to'liq foydalanishingiz mumkin.",
+      registrationPhotoRetryRequested:
+        "⚠️ Yuborgan rasmingizda shaxs tasvirlanmagan yoki rasm sifatli emas. Iltimos, aniq va sifatli rasmingizni qayta yuboring.",
       registrationDone:
         "🎉 Registratsiya muvaffaqiyatli tugadi. Endi promokodlaringizni kiritishingiz mumkin.",
       mainMenuHint: "🏠 Asosiy menyudan kerakli bo'limni tanlang.",
@@ -82,8 +100,26 @@ const resources = {
     translation: {
       chooseLanguage: "🌐 Пожалуйста, выберите язык.",
       languageSaved: "✅ Язык сохранен.",
+      enterFirstName: "👤 Введите имя.",
+      invalidFirstName:
+        "⚠️ Имя указано неверно. Введите имя длиной 2-50 символов.",
+      enterLastName: "👤 Введите фамилию.",
+      invalidLastName:
+        "⚠️ Фамилия указана неверно. Введите фамилию длиной 2-50 символов.",
       sharePhone: "📱 Для завершения регистрации отправьте номер телефона.",
       contactButton: "📲 Отправить номер телефона",
+      shareProfilePhoto:
+        "📸 Теперь отправьте свою фотографию. Лицо на фото должно быть хорошо видно.",
+      profilePhotoOnly:
+        "📸 Для продолжения регистрации отправьте фотографию.",
+      registrationPhotoReceived:
+        "⏳ Фото получено. Вы сможете полноценно пользоваться ботом после подтверждения администратором.",
+      registrationPendingApproval:
+        "⏳ Ваши данные находятся на проверке у администратора. После подтверждения мы сообщим вам здесь.",
+      registrationApproved:
+        "✅ Ваш профиль подтвержден. Теперь вы можете полноценно пользоваться ботом.",
+      registrationPhotoRetryRequested:
+        "⚠️ На отправленном фото не видно человека или качество изображения недостаточное. Пожалуйста, отправьте фотографию повторно в хорошем качестве.",
       registrationDone:
         "🎉 Регистрация успешно завершена. Теперь можете активировать промокоды.",
       mainMenuHint: "🏠 Выберите нужный раздел из главного меню.",

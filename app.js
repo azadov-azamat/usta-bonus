@@ -7,9 +7,16 @@ const cors = require("cors");
 const morgan = require("morgan");
 const adminRoutes = require("./routes");
 const { bot, getWebhookPath, getWebhookUrl } = require("./bot");
+const {
+  adminBot,
+  getAdminWebhookPath,
+  getAdminWebhookUrl,
+  isAdminBotEnabled,
+} = require("./admin-bot");
 
 const app = express();
 const webhookPath = getWebhookPath();
+const adminWebhookPath = getAdminWebhookPath();
 const frontendBuildPath = path.join(__dirname, "..", "frontend", "out");
 const frontendIndexPath = path.join(frontendBuildPath, "index.html");
 const hasFrontendBuild = fs.existsSync(frontendIndexPath);
@@ -55,6 +62,7 @@ app.get("/", (req, res) => {
     service: "turon-bot",
     mode: process.env.NODE_ENV === "production" ? "webhook" : "polling",
     webhookPath,
+    adminWebhookPath: isAdminBotEnabled() ? adminWebhookPath : null,
     adminPanel: hasFrontendBuild ? "/admin" : null,
   });
 });
@@ -66,10 +74,16 @@ app.get("/health", (req, res) => {
     mode: "webhook",
     webhookPath,
     webhookUrl: getWebhookUrl(),
+    adminWebhookPath: isAdminBotEnabled() ? adminWebhookPath : null,
+    adminWebhookUrl: isAdminBotEnabled() ? getAdminWebhookUrl() : null,
   });
 });
 
 app.use(bot.webhookCallback(webhookPath));
+
+if (adminBot) {
+  app.use(adminBot.webhookCallback(adminWebhookPath));
+}
 
 if (hasFrontendBuild) {
   app.use("/admin", express.static(frontendBuildPath));

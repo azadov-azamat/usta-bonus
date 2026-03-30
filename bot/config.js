@@ -1,5 +1,5 @@
 const token = process.env.BOT_TOKEN;
-const webhookPath = process.env.BOT_WEBHOOK_PATH || "/telegram/webhook";
+const webhookPath = "/telegram/webhook";
 
 function getExpectedWebhookUrl() {
   if (!process.env.BOT_BASE_URL) {

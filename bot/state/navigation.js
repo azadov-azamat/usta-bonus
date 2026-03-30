@@ -1,6 +1,10 @@
 const PAGES = {
   LANGUAGE: "language",
+  REGISTRATION_FIRST_NAME: "registration_first_name",
+  REGISTRATION_LAST_NAME: "registration_last_name",
   CONTACT: "contact",
+  REGISTRATION_PHOTO: "registration_photo",
+  REGISTRATION_PENDING: "registration_pending",
   MAIN_MENU: "main_menu",
   SETTINGS: "settings",
   SETTINGS_LANGUAGE: "settings_language",

@@ -7,6 +7,14 @@ const router = express.Router();
 
 router.use(requireAdminAuth);
 
+const userAttributes = {
+  exclude: [
+    "registrationPhotoData",
+    "passwordHash",
+    "passwordSalt",
+  ],
+};
+
 const userInclude = [
   {
     model: PromoCode,
@@ -33,13 +41,14 @@ router.get("/", async (req, res, next) => {
       where: {
         role: "worker",
       },
+      attributes: userAttributes,
       include: userInclude,
       order: [["createdAt", "DESC"]],
     });
 
     res.json({
       ok: true,
-      items: users.map(mapUser),
+      items: users.map((user) => mapUser(user, req)),
     });
   } catch (error) {
     next(error);
@@ -53,6 +62,7 @@ router.get("/:id(\\d+)", async (req, res, next) => {
         id: req.params.id,
         role: "worker",
       },
+      attributes: userAttributes,
       include: userInclude,
     });
 
@@ -66,8 +76,53 @@ router.get("/:id(\\d+)", async (req, res, next) => {
 
     res.json({
       ok: true,
-      item: mapUser(user),
+      item: mapUser(user, req),
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/:id(\\d+)/registration-photo", async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: {
+        id: req.params.id,
+        role: "worker",
+      },
+      attributes: [
+        "id",
+        "registrationPhotoData",
+        "registrationPhotoMimeType",
+        "registrationPhotoName",
+      ],
+    });
+
+    if (!user) {
+      res.status(404).json({
+        ok: false,
+        message: "Foydalanuvchi topilmadi.",
+      });
+      return;
+    }
+
+    if (!user.registrationPhotoData) {
+      res.status(404).json({
+        ok: false,
+        message: "Registratsiya rasmi topilmadi.",
+      });
+      return;
+    }
+
+    res.setHeader(
+      "Content-Type",
+      user.registrationPhotoMimeType || "application/octet-stream",
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${user.registrationPhotoName || `registration-${user.id}`}"`,
+    );
+    res.send(user.registrationPhotoData);
   } catch (error) {
     next(error);
   }

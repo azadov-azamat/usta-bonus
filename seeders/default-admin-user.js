@@ -14,6 +14,9 @@ async function seedDefaultAdminUser(User, transaction) {
       login: config.login,
       firstName: config.name,
       isRegistered: true,
+      registrationStatus: "approved",
+      registrationReviewedByAdmin: true,
+      approvedAt: new Date(),
       passwordHash: digest.hash,
       passwordSalt: digest.salt
     },
@@ -23,6 +26,9 @@ async function seedDefaultAdminUser(User, transaction) {
   if (!created) {
     adminUser.role = "admin";
     adminUser.isRegistered = true;
+    adminUser.registrationStatus = "approved";
+    adminUser.registrationReviewedByAdmin = true;
+    adminUser.approvedAt = adminUser.approvedAt || new Date();
     adminUser.firstName = config.name;
     adminUser.passwordHash = digest.hash;
     adminUser.passwordSalt = digest.salt;

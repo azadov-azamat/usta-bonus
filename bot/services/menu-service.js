@@ -1,3 +1,4 @@
+const { Markup } = require("telegraf");
 const { t } = require("../i18n");
 const {
   getBackKeyboard,
@@ -17,10 +18,15 @@ const {
   setCurrentPage,
 } = require("../state/navigation");
 const { formatMoney, formatMoneyWithUnit } = require("../utils/formatters");
+const { sendCtxChatAction } = require("../utils/chat-actions");
 const { formatCardNumber } = require("../utils/card-number");
 const { getUserLocale } = require("../utils/locale");
 const { listUserPromoCodesPage } = require("./promo-service");
-const { hasPhoneNumber, setUserLanguage } = require("./user-service");
+const {
+  hasEnteredFullName,
+  hasPhoneNumber,
+  setUserLanguage,
+} = require("./user-service");
 const PROMO_MORE_ACTION_REGEX = /^promo_more:(\d+)$/;
 
 function getPromoMoreAction(offset) {
@@ -95,6 +101,7 @@ async function promptForLanguage(ctx, options = {}) {
   const sessionState = getSessionState(ctx);
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.LANGUAGE, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     "🌐 Tilni tanlang / Выберите язык / Тилни танланг.",
     getLanguageKeyboard(),
@@ -105,9 +112,60 @@ async function promptForPhone(ctx, user, options = {}) {
   const sessionState = getSessionState(ctx);
   const locale = getUserLocale(user);
   setCurrentPage(sessionState, PAGES.CONTACT, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "sharePhone"),
     getContactKeyboard(locale),
+  );
+}
+
+async function promptForFirstName(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  clearFlowState(sessionState);
+  sessionState.step = "awaiting_first_name";
+  setCurrentPage(sessionState, PAGES.REGISTRATION_FIRST_NAME, options);
+  await sendCtxChatAction(ctx, "typing");
+  await ctx.reply(
+    t(locale, "enterFirstName"),
+    Markup.removeKeyboard(),
+  );
+}
+
+async function promptForLastName(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  clearFlowState(sessionState);
+  sessionState.step = "awaiting_last_name";
+  setCurrentPage(sessionState, PAGES.REGISTRATION_LAST_NAME, options);
+  await sendCtxChatAction(ctx, "typing");
+  await ctx.reply(
+    t(locale, "enterLastName"),
+    Markup.removeKeyboard(),
+  );
+}
+
+async function promptForRegistrationPhoto(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.REGISTRATION_PHOTO, options);
+  await sendCtxChatAction(ctx, "typing");
+  await ctx.reply(
+    t(locale, "shareProfilePhoto"),
+    Markup.removeKeyboard(),
+  );
+}
+
+async function showPendingApprovalMessage(ctx, user, options = {}) {
+  const sessionState = getSessionState(ctx);
+  const locale = getUserLocale(user);
+  clearFlowState(sessionState);
+  setCurrentPage(sessionState, PAGES.REGISTRATION_PENDING, options);
+  await sendCtxChatAction(ctx, "typing");
+  await ctx.reply(
+    t(locale, "registrationPendingApproval"),
+    Markup.removeKeyboard(),
   );
 }
 
@@ -121,6 +179,7 @@ async function showMainMenu(
   const locale = getUserLocale(user);
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.MAIN_MENU, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, messageKey),
     getMainMenuKeyboard(locale),
@@ -137,6 +196,7 @@ async function showSettingsMenu(
   const locale = getUserLocale(user);
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.SETTINGS, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, messageKey),
     getSettingsKeyboard(locale),
@@ -148,6 +208,7 @@ async function showLanguageSettings(ctx, user, options = {}) {
   const locale = getUserLocale(user);
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.SETTINGS_LANGUAGE, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "chooseLanguage"),
     getLanguageKeyboard(locale, { showBack: true }),
@@ -157,7 +218,9 @@ async function showLanguageSettings(ctx, user, options = {}) {
 async function applyLanguageSelection(ctx, user, selectedLocale) {
   const sessionState = getSessionState(ctx);
   const isSettingsLanguagePage =
-    sessionState.pageKey === PAGES.SETTINGS_LANGUAGE && hasPhoneNumber(user);
+    sessionState.pageKey === PAGES.SETTINGS_LANGUAGE &&
+    hasEnteredFullName(user) &&
+    hasPhoneNumber(user);
 
   await setUserLanguage(user, selectedLocale);
 
@@ -167,7 +230,7 @@ async function applyLanguageSelection(ctx, user, selectedLocale) {
     return;
   }
 
-  if (hasPhoneNumber(user)) {
+  if (hasEnteredFullName(user) && hasPhoneNumber(user)) {
     resetNavigation(sessionState, PAGES.MAIN_MENU);
 
     if (ctx.callbackQuery?.message) {
@@ -176,6 +239,7 @@ async function applyLanguageSelection(ctx, user, selectedLocale) {
       } catch {}
     }
 
+    await sendCtxChatAction(ctx, "typing");
     await ctx.reply(
       t(selectedLocale, "languageSaved"),
       getMainMenuKeyboard(selectedLocale),
@@ -188,7 +252,18 @@ async function applyLanguageSelection(ctx, user, selectedLocale) {
       await ctx.editMessageText(t(selectedLocale, "languageSaved"));
     } catch {}
   } else {
+    await sendCtxChatAction(ctx, "typing");
     await ctx.reply(t(selectedLocale, "languageSaved"));
+  }
+
+  if (!String(user.enteredFirstName || "").trim()) {
+    await promptForFirstName(ctx, user, { replace: true });
+    return;
+  }
+
+  if (!String(user.enteredLastName || "").trim()) {
+    await promptForLastName(ctx, user, { replace: true });
+    return;
   }
 
   await promptForPhone(ctx, user, { replace: true });
@@ -199,6 +274,7 @@ async function askPromoCode(ctx, user, options = {}) {
   const locale = getUserLocale(user);
   sessionState.step = "awaiting_promo_code";
   setCurrentPage(sessionState, PAGES.PROMO_INPUT, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "enterPromoCode"),
     getBackKeyboard(locale),
@@ -216,6 +292,7 @@ async function listMyPromoCodes(ctx, user, options = {}) {
   });
 
   if (!hasCodes) {
+    await sendCtxChatAction(ctx, "typing");
     await ctx.reply(
       t(locale, "myPromoCodesEmpty"),
       getBackKeyboard(locale),
@@ -260,6 +337,7 @@ async function showBalance(ctx, user, options = {}) {
   clearFlowState(sessionState);
   setCurrentPage(sessionState, PAGES.BALANCE, options);
 
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "balanceText", {
       amount: formatMoney(locale, user.balance),
@@ -276,6 +354,7 @@ async function askWithdrawalAmount(ctx, user, options = {}) {
   sessionState.pendingWithdrawalCard = null;
   sessionState.cardFlowType = null;
   setCurrentPage(sessionState, PAGES.WITHDRAWAL_AMOUNT, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "enterWithdrawalAmount", {
       amount: formatMoney(locale, user.balance),
@@ -292,6 +371,7 @@ async function askWithdrawalCard(ctx, user, amount, options = {}) {
   sessionState.pendingWithdrawalCard = null;
   sessionState.cardFlowType = "withdrawal";
   setCurrentPage(sessionState, PAGES.WITHDRAWAL_CARD, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "enterCardNumber"),
     getBackKeyboard(locale),
@@ -306,6 +386,7 @@ async function askSettingsCard(ctx, user, options = {}) {
   sessionState.pendingWithdrawalCard = null;
   sessionState.cardFlowType = "settings";
   setCurrentPage(sessionState, PAGES.SETTINGS_CARD, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "enterNewCardNumber"),
     getBackKeyboard(locale),
@@ -319,6 +400,7 @@ async function confirmCardEntry(ctx, user, flowType, cardNumber, options = {}) {
   sessionState.pendingWithdrawalCard = cardNumber;
   sessionState.cardFlowType = flowType;
   setCurrentPage(sessionState, PAGES.CARD_CONFIRM, options);
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "confirmCardNumber", {
       cardNumber: formatCardNumber(cardNumber),
@@ -334,8 +416,20 @@ async function renderPage(ctx, user, page, options = {}) {
     case PAGES.LANGUAGE:
       await promptForLanguage(ctx, options);
       break;
+    case PAGES.REGISTRATION_FIRST_NAME:
+      await promptForFirstName(ctx, user, options);
+      break;
+    case PAGES.REGISTRATION_LAST_NAME:
+      await promptForLastName(ctx, user, options);
+      break;
     case PAGES.CONTACT:
       await promptForPhone(ctx, user, options);
+      break;
+    case PAGES.REGISTRATION_PHOTO:
+      await promptForRegistrationPhoto(ctx, user, options);
+      break;
+    case PAGES.REGISTRATION_PENDING:
+      await showPendingApprovalMessage(ctx, user, options);
       break;
     case PAGES.SETTINGS:
       await showSettingsMenu(ctx, user, "settingsHint", options);
@@ -418,13 +512,17 @@ module.exports = {
   askWithdrawalCard,
   confirmCardEntry,
   listMyPromoCodes,
+  promptForFirstName,
+  promptForLastName,
   promptForLanguage,
   promptForPhone,
+  promptForRegistrationPhoto,
   renderPage,
   PROMO_MORE_ACTION_REGEX,
   showBalance,
   showLanguageSettings,
   showMorePromoCodes,
   showMainMenu,
+  showPendingApprovalMessage,
   showSettingsMenu,
 };

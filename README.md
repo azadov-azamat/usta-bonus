@@ -4,12 +4,14 @@ Telegram bot va admin paneldan iborat promo tizimi:
 
 - usta botda registratsiyadan o'tadi
 - til tanlaydi: `uz`, `ru`, `uz-cyrl`
+- telefon raqamidan keyin o'z rasmini yuboradi va admin tasdiqidan o'tadi
 - promokodni aktivlashtirib balansiga bonus oladi
 - balansdan kartaga o'tkazish uchun ariza yuboradi
 - admin panelda foydalanuvchilar, mahsulotlar va arizalar ko'rinadi
 - admin Excel yuklaydi va har mahsulot uchun unikal promokodlar generatsiya qilinadi
 - admin kvitansiya rasmi yuklab, uni foydalanuvchining Telegram botiga yuboradi
 - admin panelga `admin` role va login/parol orqali kiriladi
+- adminlar uchun alohida Telegram bot bor: registratsiya tasdiqlashlari va withdrawal arizalari shu botga keladi
 
 ## Texnologiyalar
 
@@ -45,13 +47,12 @@ cp .env.example .env
 - `DATABASE_URL`
 - `PORT`
 - `BOT_BASE_URL` (`production` uchun)
-- `BOT_WEBHOOK_PATH`
+- `ADMIN_BOT_TOKEN`
 - `FRONTEND_URL` (ixtiyoriy, ruxsat etilgan frontend origin)
 - `CORS_ALLOWED_ORIGINS` (ixtiyoriy, vergul bilan ajratilgan qo'shimcha originlar)
 - `ADMIN_LOGIN`
 - `ADMIN_PASSWORD`
 - `ADMIN_AUTH_SECRET`
-- `DB_SYNC_ALTER`
 - `ADMIN_PANEL_URL` (ixtiyoriy, admin panel bazaviy URL'i)
 - `ADMIN_WITHDRAWALS_URL` (ixtiyoriy, adminlarga yuboriladigan to'g'ridan-to'g'ri withdrawal page linki)
 
@@ -111,9 +112,25 @@ yarn seed:admin
 
 ## Bot menyusi
 
-Registratsiyadan keyin `keyboard button` orqali quyidagi bo'limlar chiqadi:
+Admin tasdig'idan keyin `keyboard button` orqali quyidagi bo'limlar chiqadi:
 
 - `Promokodni aktivlashtirish`
 - `Promokodlarim`
 - `Balansim`
 - `Pul yechish`
+
+## Registratsiya approval oqimi
+
+1. User `/start` qiladi va til tanlaydi.
+2. User telefon raqamini yuboradi.
+3. Bot userdan shaxs rasmi yuborishni so'raydi.
+4. Rasm admin botga foto + ma'lumot + `Tasdiqlash` / `Qayta yuborish` tugmalari bilan keladi.
+5. User rasmi bazada saqlanadi va admin API orqali ochish mumkin.
+6. `Tasdiqlash` bosilgach user botdan to'liq foydalana oladi.
+7. `Qayta yuborish` bosilgach userga "yuborgan rasmingizda shaxs tasvirlanmagan yoki rasm sifatli emas" mazmunidagi xabar yuboriladi va u rasmni qayta yuboradi.
+
+## Admin botni ulash
+
+- `ADMIN_BOT_TOKEN` bilan alohida Telegram bot yarating.
+- Admin rolidagi user yozuviga adminning `telegramId` qiymati biriktirilgan bo'lishi kerak.
+- Admin o'sha Telegram account bilan admin botga `/start` yuborgach `admin_chat_id` saqlanadi va keyingi approval/withdrawal bildirishnomalari shu chatga keladi.

@@ -1,10 +1,14 @@
 const { t } = require("../i18n");
 const { getContactKeyboard } = require("../keyboards");
 const {
+  promptForFirstName,
+  promptForLastName,
   promptForLanguage,
-  showMainMenu,
+  promptForRegistrationPhoto,
 } = require("../services/menu-service");
 const {
+  hasEnteredFirstName,
+  hasEnteredLastName,
   hasSelectedLanguage,
   setUserPhoneNumber,
 } = require("../services/user-service");
@@ -17,6 +21,16 @@ async function handleContact(ctx) {
 
   if (!hasSelectedLanguage(user)) {
     await promptForLanguage(ctx, { replace: true });
+    return;
+  }
+
+  if (!hasEnteredFirstName(user)) {
+    await promptForFirstName(ctx, user, { replace: true });
+    return;
+  }
+
+  if (!hasEnteredLastName(user)) {
+    await promptForLastName(ctx, user, { replace: true });
     return;
   }
 
@@ -33,7 +47,7 @@ async function handleContact(ctx) {
 
   await setUserPhoneNumber(user, ctx.message.contact.phone_number);
   resetNavigation(getSessionState(ctx));
-  await showMainMenu(ctx, user, "registrationDone", { replace: true });
+  await promptForRegistrationPhoto(ctx, user, { replace: true });
 }
 
 module.exports = handleContact;

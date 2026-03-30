@@ -22,6 +22,13 @@ router.get("/", async (req, res, next) => {
         {
           model: User,
           as: "user",
+          attributes: {
+            exclude: [
+              "registrationPhotoData",
+              "passwordHash",
+              "passwordSalt",
+            ],
+          },
         },
       ],
       order: [["requestedAt", "DESC"]],
@@ -59,7 +66,19 @@ router.get("/", async (req, res, next) => {
 router.get("/:id(\\d+)", async (req, res, next) => {
   try {
     const request = await WithdrawalRequest.findByPk(req.params.id, {
-      include: [{ model: User, as: "user" }],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: {
+            exclude: [
+              "registrationPhotoData",
+              "passwordHash",
+              "passwordSalt",
+            ],
+          },
+        },
+      ],
     });
 
     if (!request) {
@@ -131,7 +150,19 @@ router.post("/:id/complete", receiptUpload.single("receipt"), async (req, res, n
           [Op.in]: ["pending"],
         },
       },
-      include: [{ model: User, as: "user" }],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: {
+            exclude: [
+              "registrationPhotoData",
+              "passwordHash",
+              "passwordSalt",
+            ],
+          },
+        },
+      ],
     });
 
     if (!request) {

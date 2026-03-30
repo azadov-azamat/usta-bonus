@@ -22,6 +22,7 @@ const {
 } = require("../state/navigation");
 const { t } = require("../i18n");
 const { getMainMenuKeyboard } = require("../keyboards");
+const { sendCtxChatAction } = require("../utils/chat-actions");
 const { getUserLocale } = require("../utils/locale");
 const {
   BACK_ACTION,
@@ -34,6 +35,7 @@ const {
 
 async function handleSettingsLanguageAction(ctx) {
   await ctx.answerCbQuery();
+  await sendCtxChatAction(ctx, "typing");
   await showLanguageSettings(ctx, ctx.state.user);
 }
 
@@ -45,6 +47,7 @@ async function handleMenuBackAction(ctx) {
   await ctx.answerCbQuery();
 
   const previousPage = goBack(sessionState, PAGES.MAIN_MENU);
+  await sendCtxChatAction(ctx, "typing");
   await renderPage(ctx, ctx.state.user, previousPage, { replace: true });
 }
 
@@ -57,6 +60,7 @@ async function handleLanguageAction(ctx) {
     return;
   }
 
+  await sendCtxChatAction(ctx, "typing");
   await applyLanguageSelection(ctx, ctx.state.user, locale);
 }
 
@@ -103,6 +107,7 @@ async function handleConfirmCardAction(ctx) {
     amount,
   );
 
+  await sendCtxChatAction(ctx, "typing");
   await ctx.reply(
     t(locale, "withdrawalCreated"),
     getMainMenuKeyboard(locale),
@@ -110,7 +115,6 @@ async function handleConfirmCardAction(ctx) {
 
   try {
     await notifyAdminsAboutWithdrawalRequest(
-      ctx.telegram,
       user,
       withdrawalRequest,
     );

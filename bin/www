@@ -5,6 +5,10 @@ const http = require("node:http");
 const app = require("../app");
 const { initDatabase, sequelize } = require("../models");
 const { startBotRuntime, stopBotRuntime } = require("../bot");
+const {
+  startAdminBotRuntime,
+  stopAdminBotRuntime,
+} = require("../admin-bot");
 
 const port = Number(process.env.PORT || 8080);
 let server;
@@ -33,6 +37,7 @@ async function shutdown(reason) {
 
   try {
     await stopBotRuntime(reason);
+    await stopAdminBotRuntime(reason);
 
     if (server) {
       await new Promise((resolve, reject) => {
@@ -68,7 +73,10 @@ async function bootstrap() {
     });
   });
 
+  console.log("Asosiy bot ishga tushirilmoqda...");
   await startBotRuntime();
+  console.log("Admin bot ishga tushirilmoqda...");
+  await startAdminBotRuntime();
 }
 
 bootstrap().catch(async (error) => {

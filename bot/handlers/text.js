@@ -13,18 +13,29 @@ const {
   askWithdrawalCard,
   confirmCardEntry,
   listMyPromoCodes,
+  promptForFirstName,
+  promptForLastName,
   promptForLanguage,
   promptForPhone,
+  promptForRegistrationPhoto,
   renderPage,
   showBalance,
   showLanguageSettings,
   showSettingsMenu,
+  showPendingApprovalMessage,
 } = require("../services/menu-service");
 const {
   getSavedWithdrawalCard,
+  hasEnteredFirstName,
+  hasEnteredLastName,
   hasPhoneNumber,
   hasSavedWithdrawalCard,
   hasSelectedLanguage,
+  isAwaitingRegistrationPhoto,
+  isPendingRegistrationApproval,
+  isUserApproved,
+  setUserEnteredFirstName,
+  setUserEnteredLastName,
 } = require("../services/user-service");
 const {
   notifyAdminsAboutWithdrawalRequest,
@@ -87,7 +98,6 @@ async function finalizeWithdrawalRequest(ctx, user, amount, cardNumber) {
 
   try {
     await notifyAdminsAboutWithdrawalRequest(
-      ctx.telegram,
       user,
       withdrawalRequest,
     );
@@ -120,8 +130,35 @@ async function handleText(ctx) {
     return;
   }
 
+  const locale = getUserLocale(user);
+
+  if (!hasEnteredFirstName(user)) {
+    try {
+      await setUserEnteredFirstName(user, text);
+    } catch {
+      await ctx.reply(t(locale, "invalidFirstName"));
+      await promptForFirstName(ctx, user, { replace: true });
+      return;
+    }
+
+    await promptForLastName(ctx, user, { replace: true });
+    return;
+  }
+
+  if (!hasEnteredLastName(user)) {
+    try {
+      await setUserEnteredLastName(user, text);
+    } catch {
+      await ctx.reply(t(locale, "invalidLastName"));
+      await promptForLastName(ctx, user, { replace: true });
+      return;
+    }
+
+    await promptForPhone(ctx, user, { replace: true });
+    return;
+  }
+
   if (!hasPhoneNumber(user)) {
-    const locale = getUserLocale(user);
     await ctx.reply(
       t(locale, "contactRequestOnly"),
       getContactKeyboard(locale),
@@ -129,7 +166,17 @@ async function handleText(ctx) {
     return;
   }
 
-  const locale = getUserLocale(user);
+  if (!isUserApproved(user)) {
+    if (isAwaitingRegistrationPhoto(user)) {
+      await promptForRegistrationPhoto(ctx, user, { replace: true });
+      return;
+    }
+
+    if (isPendingRegistrationApproval(user)) {
+      await showPendingApprovalMessage(ctx, user, { replace: true });
+      return;
+    }
+  }
 
   if (
     text === t(locale, "back") &&

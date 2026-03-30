@@ -32,6 +32,10 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true
       },
+      adminChatId: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       username: {
         type: DataTypes.STRING,
         allowNull: true
@@ -41,6 +45,14 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       lastName: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      enteredFirstName: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      enteredLastName: {
         type: DataTypes.STRING,
         allowNull: true
       },
@@ -66,6 +78,44 @@ module.exports = (sequelize) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false
+      },
+      registrationStatus: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "awaiting_phone"
+      },
+      registrationReviewedByAdmin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      registrationPhotoFileId: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      registrationPhotoUniqueFileId: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      registrationPhotoData: {
+        type: DataTypes.BLOB,
+        allowNull: true
+      },
+      registrationPhotoMimeType: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      registrationPhotoName: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      registrationPhotoSubmittedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      approvedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
       },
       balance: {
         type: DataTypes.BIGINT,
