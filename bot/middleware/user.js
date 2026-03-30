@@ -63,25 +63,25 @@ async function userMiddleware(ctx, next) {
     return next();
   }
 
+  if (
+    ctx.message?.text &&
+    (sessionState.step === "awaiting_first_name" ||
+      sessionState.step === "awaiting_last_name")
+  ) {
+    return next();
+  }
+
   if (!hasSelectedLanguage(user) && !selectedLocale) {
     await promptForLanguage(ctx, { replace: true });
     return;
   }
 
   if (!hasEnteredFirstName(user)) {
-    if (ctx.message?.text && sessionState.step === "awaiting_first_name") {
-      return next();
-    }
-
     await promptForFirstName(ctx, user, { replace: true });
     return;
   }
 
   if (!hasEnteredLastName(user)) {
-    if (ctx.message?.text && sessionState.step === "awaiting_last_name") {
-      return next();
-    }
-
     await promptForLastName(ctx, user, { replace: true });
     return;
   }

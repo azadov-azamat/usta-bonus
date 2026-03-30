@@ -119,6 +119,33 @@ async function handleText(ctx) {
   const sessionState = getSessionState(ctx);
   const text = String(ctx.message.text || "").trim();
   const selectedLocale = ctx.state.selectedLocale;
+  const locale = getUserLocale(user);
+
+  if (sessionState.step === "awaiting_first_name") {
+    try {
+      await setUserEnteredFirstName(user, text);
+    } catch {
+      await ctx.reply(t(locale, "invalidFirstName"));
+      await promptForFirstName(ctx, user, { replace: true });
+      return;
+    }
+
+    await promptForLastName(ctx, user, { replace: true });
+    return;
+  }
+
+  if (sessionState.step === "awaiting_last_name") {
+    try {
+      await setUserEnteredLastName(user, text);
+    } catch {
+      await ctx.reply(t(locale, "invalidLastName"));
+      await promptForLastName(ctx, user, { replace: true });
+      return;
+    }
+
+    await promptForPhone(ctx, user, { replace: true });
+    return;
+  }
 
   if (selectedLocale && canHandleLanguageSelection(sessionState, user)) {
     await applyLanguageSelection(ctx, user, selectedLocale);
@@ -129,8 +156,6 @@ async function handleText(ctx) {
     await promptForLanguage(ctx, { replace: true });
     return;
   }
-
-  const locale = getUserLocale(user);
 
   if (!hasEnteredFirstName(user)) {
     try {
