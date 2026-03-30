@@ -121,7 +121,10 @@ async function handleText(ctx) {
   const selectedLocale = ctx.state.selectedLocale;
   const locale = getUserLocale(user);
 
-  if (sessionState.step === "awaiting_first_name") {
+  if (
+    sessionState.step === "awaiting_first_name" &&
+    !hasEnteredFirstName(user)
+  ) {
     try {
       await setUserEnteredFirstName(user, text);
     } catch {
@@ -134,7 +137,10 @@ async function handleText(ctx) {
     return;
   }
 
-  if (sessionState.step === "awaiting_last_name") {
+  if (
+    sessionState.step === "awaiting_last_name" &&
+    !hasEnteredLastName(user)
+  ) {
     try {
       await setUserEnteredLastName(user, text);
     } catch {

@@ -65,8 +65,10 @@ async function userMiddleware(ctx, next) {
 
   if (
     ctx.message?.text &&
-    (sessionState.step === "awaiting_first_name" ||
-      sessionState.step === "awaiting_last_name")
+    ((sessionState.step === "awaiting_first_name" &&
+      !hasEnteredFirstName(user)) ||
+      (sessionState.step === "awaiting_last_name" &&
+        !hasEnteredLastName(user)))
   ) {
     return next();
   }

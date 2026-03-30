@@ -17,7 +17,17 @@ const REGISTRATION_STATUSES = {
 };
 
 function hasSelectedLanguage(user) {
-  return Boolean(user?.languageSelected) && isKnownLocale(user.language);
+  const hasProgressedPastLanguage =
+    hasEnteredFirstName(user) ||
+    hasEnteredLastName(user) ||
+    hasPhoneNumber(user) ||
+    Boolean(user?.registrationPhotoSubmittedAt) ||
+    Boolean(user?.approvedAt);
+
+  return (
+    isKnownLocale(user.language) &&
+    (Boolean(user?.languageSelected) || hasProgressedPastLanguage)
+  );
 }
 
 function hasPhoneNumber(user) {
@@ -114,6 +124,19 @@ function isAwaitingRegistrationPhoto(user) {
 }
 
 function syncRegistrationStatus(user) {
+  if (!user.languageSelected && isKnownLocale(user.language)) {
+    const hasProgressedPastLanguage =
+      hasEnteredFirstName(user) ||
+      hasEnteredLastName(user) ||
+      hasPhoneNumber(user) ||
+      Boolean(user?.registrationPhotoSubmittedAt) ||
+      Boolean(user?.approvedAt);
+
+    if (hasProgressedPastLanguage) {
+      user.languageSelected = true;
+    }
+  }
+
   user.isRegistered =
     hasSelectedLanguage(user) &&
     hasEnteredFullName(user) &&
